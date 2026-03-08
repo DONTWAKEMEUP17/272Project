@@ -90,7 +90,7 @@ def main(max_items=1000, start_year=2000, pages=40, sleep_sec=0.6):
         if y is None or y < 2000:
             continue
 
-        if votes < 5000:
+        if votes < 4000:
             continue
 
         # Bangumi 的“类型/风格”更像 tags + 目录分类，不是 MAL 那种固定 genres

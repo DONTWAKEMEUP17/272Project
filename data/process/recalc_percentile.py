@@ -59,5 +59,5 @@ def recalculate_percentiles(csv_path):
 
 
 if __name__ == "__main__":
-    csv_path = "/Users/dontwakemeup/Desktop/Code/272project/272Project/project/data/process/merged_anime_final.csv"
+    csv_path = "/Users/dontwakemeup/Desktop/Code/272project/272Project/data/process/merged_anime_final.csv"
     recalculate_percentiles(csv_path)

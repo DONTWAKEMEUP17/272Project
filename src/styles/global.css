@@ -48,8 +48,13 @@ body {
   pointer-events: none;
 }
 
-.chart-layer[aria-hidden='false'] {
+.chart-layer[aria-hidden="false"] {
   pointer-events: auto;
+}
+
+/* Ensure hidden layers don't intercept pointer events */
+.chart-layer[aria-hidden="true"] {
+  pointer-events: none !important;
 }
 
 .story-panel {

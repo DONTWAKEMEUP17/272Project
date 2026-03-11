@@ -177,17 +177,19 @@ export class HeatmapChart {
         
         // Show tooltip
         const tooltipText = `${d.genre} - ${this.platformLabels[d.platform]}\nAvg Percentile: ${d.value.toFixed(1)}\nTitles: ${d.count || 'N/A'}`;
+        const containerRect = this.container.getBoundingClientRect();
         tooltip
           .style('display', 'block')
           .html(tooltipText.replace(/\n/g, '<br/>'))
-          .style('left', (event.pageX + 10) + 'px')
-          .style('top', (event.pageY + 10) + 'px');
+          .style('left', (event.clientX - containerRect.left + 10) + 'px')
+          .style('top', (event.clientY - containerRect.top + 10) + 'px');
       })
       .on('mousemove', (event) => {
         // Update tooltip position
+        const containerRect = this.container.getBoundingClientRect();
         tooltip
-          .style('left', (event.pageX + 10) + 'px')
-          .style('top', (event.pageY + 10) + 'px');
+          .style('left', (event.clientX - containerRect.left + 10) + 'px')
+          .style('top', (event.clientY - containerRect.top + 10) + 'px');
       })
       .on('mouseleave', function(event, d) {
         // Hover out: reset

@@ -389,11 +389,12 @@ export class BeeswarmChart {
       <br/>Bangumi: ${data.bgm_score ? data.bgm_score.toFixed(2) : 'N/A'} (${data.bgm_votes ? data.bgm_votes.toLocaleString() : 0} votes)
     `;
 
+    const containerRect = this.container.getBoundingClientRect();
     this.tooltip
       .style('display', 'block')
       .html(tooltipText)
-      .style('left', (event.pageX + 10) + 'px')
-      .style('top', (event.pageY + 10) + 'px');
+      .style('left', (event.clientX - containerRect.left + 20) + 'px')
+      .style('top', (event.clientY - containerRect.top + 55) + 'px');
   }
 
   /**
@@ -401,9 +402,10 @@ export class BeeswarmChart {
    */
   updateTooltipPosition(event) {
     if (this.tooltip) {
+      const containerRect = this.container.getBoundingClientRect();
       this.tooltip
-        .style('left', (event.pageX + 10) + 'px')
-        .style('top', (event.pageY + 10) + 'px');
+        .style('left', (event.clientX - containerRect.left + 60) + 'px')
+        .style('top', (event.clientY - containerRect.top + 85) + 'px');
     }
   }
 

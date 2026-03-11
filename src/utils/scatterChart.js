@@ -140,7 +140,7 @@ export class ScatterChart {
 
     // Y scale: average rating
     this.yScale = d3.scaleLinear()
-      .domain([4, 10]) // Most anime are between 4-10 range
+      .domain([7, 10]) // Start from 7, most anime are between 7-10 range
       .range([this.innerHeight, 0])
       .nice();
 
@@ -378,11 +378,12 @@ export class ScatterChart {
       </span>
     `;
 
+    const containerRect = this.container.getBoundingClientRect();
     this.tooltip
       .style('display', 'block')
       .html(tooltipText)
-      .style('left', (event.pageX + 10) + 'px')
-      .style('top', (event.pageY + 10) + 'px');
+      .style('left', (event.clientX - containerRect.left + 50) + 'px')
+      .style('top', (event.clientY - containerRect.top + 85) + 'px');
   }
 
   /**
@@ -390,9 +391,10 @@ export class ScatterChart {
    */
   updateTooltipPosition(event) {
     if (this.tooltip) {
+      const containerRect = this.container.getBoundingClientRect();
       this.tooltip
-        .style('left', (event.pageX + 10) + 'px')
-        .style('top', (event.pageY + 10) + 'px');
+        .style('left', (event.clientX - containerRect.left + 50) + 'px')
+        .style('top', (event.clientY - containerRect.top + 85) + 'px');
     }
   }
 

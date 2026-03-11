@@ -409,11 +409,12 @@ export class ParallelCoordinateChart {
       }
     }
 
+    const containerRect = this.container.getBoundingClientRect();
     this.tooltip
       .style('display', 'block')
       .html(tooltipText)
-      .style('left', (event.pageX + 10) + 'px')
-      .style('top', (event.pageY + 10) + 'px');
+      .style('left', (event.clientX - containerRect.left + 50) + 'px')
+      .style('top', (event.clientY - containerRect.top + 85) + 'px');
   }
 
   /**
@@ -421,9 +422,10 @@ export class ParallelCoordinateChart {
    */
   updateTooltipPosition(event) {
     if (this.tooltip) {
+      const containerRect = this.container.getBoundingClientRect();
       this.tooltip
-        .style('left', (event.pageX + 10) + 'px')
-        .style('top', (event.pageY + 10) + 'px');
+        .style('left', (event.clientX - containerRect.left + 50) + 'px')
+        .style('top', (event.clientY - containerRect.top + 85) + 'px');
     }
   }
 

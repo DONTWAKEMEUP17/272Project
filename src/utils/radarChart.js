@@ -315,6 +315,7 @@ export class RadarChart {
 
     // Genre label at bottom
     group.append('text')
+      .attr('class', 'radar-genre-label')
       .attr('x', 0)
       .attr('y', radius + 30)
       .attr('text-anchor', 'middle')
@@ -325,6 +326,7 @@ export class RadarChart {
 
     // Count label
     group.append('text')
+      .attr('class', 'radar-count-label')
       .attr('x', 0)
       .attr('y', radius + 42)
       .attr('text-anchor', 'middle')
@@ -337,14 +339,9 @@ export class RadarChart {
    * Highlight a specific genre radar
    */
   highlightRadar(genreName) {
-    this.g.selectAll('.radar-group').attr('opacity', d => {
-      // Note: d is undefined in this context, need to fix - check if it's the radar-group element
-      return 0.3;
-    });
-
-    // Instead, highlight by finding the radar containing the genre
+    // Highlight the selected genre, dim others
     this.g.selectAll('.radar-group').each(function(d, i) {
-      const text = d3.select(this).select('text:last-of-type');
+      const text = d3.select(this).select('.radar-genre-label');
       if (text.text() === genreName) {
         d3.select(this).attr('opacity', 1);
       } else {
@@ -382,11 +379,12 @@ export class RadarChart {
       </span>
     `;
 
+    const containerRect = this.container.getBoundingClientRect();
     this.tooltip
       .style('display', 'block')
       .html(tooltipText)
-      .style('left', (event.pageX + 10) + 'px')
-      .style('top', (event.pageY + 10) + 'px');
+      .style('left', (event.clientX - containerRect.left + 50) + 'px')
+      .style('top', (event.clientY - containerRect.top + 85) + 'px');
   }
 
   /**

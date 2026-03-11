@@ -1,9 +1,11 @@
 <template>
   <main class="app-shell">
     <header class="app-header">
-      <h1>Anime Data Scrollytelling (Course Project)</h1>
-      <p>Sticky chart + scrolling narrative text (Scrollama sticky overlay pattern).</p>
-      <p v-if="globalState.activeStep !== null">Active step: {{ globalState.activeStep + 1 }}</p>
+      <h1>Anime Universe</h1>
+      <p class="tagline">Exploring the Story Behind Anime Data · Understanding Trends Through Interactive Visualization</p>
+      <p class="subtitle" v-if="globalState.activeStep !== null">
+        <span class="step-indicator">Step {{ globalState.activeStep + 1 }}</span>
+      </p>
     </header>
 
     <section class="scrolly-layout">
@@ -54,28 +56,28 @@ const globalState = inject('globalState');
 const steps = [
   {
     id: 'step-1',
-    title: 'Step 1 · Entry Point',
-    body: 'This placeholder paragraph introduces the first chart. As you continue scrolling, the narrative text keeps moving while the chart area remains sticky.'
+    title: '🎬 Entry: The Breadth of the Anime World',
+    body: 'Countless new anime productions emerge every year, forming a vast creative ecosystem. This visualization showcases the distribution of different anime genres, from action-packed adventures to healing slice-of-life. The diversity is remarkable. As you scroll down, we\'ll explore the stories hidden behind the data.'
   },
   {
     id: 'step-2',
-    title: 'Step 2 · Comparison',
-    body: 'Use this section to explain a second perspective in your dataset. The background chart crossfades into the next graph when this step becomes active.'
+    title: '📊 Comparison: The Relation Between Ratings and Popularity',
+    body: 'Interestingly, an anime\'s popularity and its rating don\'t always correlate. Some niche masterpieces achieve exceptional ratings, while some big-budget productions may experience rating fluctuations due to content controversy. This finding challenges the common assumption that \'popular equals excellent.\'.'
   },
   {
     id: 'step-3',
-    title: 'Step 3 · Pattern',
-    body: 'This text block can highlight an emerging pattern and prepare the viewer for another visual transition in the sticky chart container.'
+    title: '🔍 Pattern: The Evolution of Time and Quality',
+    body: 'With technological advances and improved production techniques, recent anime has shown a rising trend in overall quality. The emergence of streaming platforms has also transformed how anime is produced and distributed, providing creators more innovative opportunities. This evolution reflects healthy industry growth.'
   },
   {
     id: 'step-4',
-    title: 'Step 4 · Outlier',
-    body: 'Describe outliers, anomalies, or a key turning point here. The sticky overlay keeps the chart fixed, creating a clean scrollytelling rhythm.'
+    title: '⭐ Outliers: Those Exceptional Creations',
+    body: 'Every dataset has outliers, and anime data is no exception. Some works stand out for their innovative storytelling, while others gain fame for their cross-cultural impact. These outliers often represent breakthrough moments and new directions for the industry.'
   },
   {
     id: 'step-5',
-    title: 'Step 5 · Closing',
-    body: 'Conclude the narrative in the final step. You can replace this copy with your real story and keep the same Scrollama-driven interaction.'
+    title: '🎯 Conclusion: Insights Beyond the Data',
+    body: 'Through this visualization journey, we\'ve not only seen charts and statistics, but built a bridge connecting data with stories, algorithms with emotions. Anime, as a cultural form, transcends pure data analysis and represents the infinite possibilities of human creativity.'
   }
 ];
 
@@ -109,3 +111,25 @@ useScrollama({
   }
 });
 </script>
+
+<style scoped>
+.app-header .tagline {
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
+  opacity: 0.95;
+}
+
+.app-header .subtitle {
+  margin-top: 1rem;
+  font-size: 0.95rem;
+}
+
+.step-indicator {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+}
+</style>

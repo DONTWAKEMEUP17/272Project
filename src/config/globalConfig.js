@@ -5,6 +5,42 @@ export const globalConfig = {
     width: 1600,
     height: 700,
     margin: { top: 40, right: 20, bottom: 80, left: 100 }
+  },
+  // 赛博朋克2077配色方案
+  cyberpunkPalette: {
+    primary: '#FF006E',      // 霓虹粉红
+    primaryLight: '#FF4D94', // 浅粉红
+    primary2: '#FF1493',     // 深粉红
+    primary_soft: '#C20052', // 柔和粉红
+    accent: '#00D9FF',       // 霓虹青蓝
+    accentLight: '#4DD9FF',  // 浅青蓝
+    accent2: '#00FFFF',      // 纯青蓝
+    accent_soft: '#00B8D4',  // 柔和青蓝
+    success: '#39FF14',      // 霓虹绿
+    success_soft: '#2ACC2C', // 柔和绿
+    warning: '#FFFF00',      // 霓虹黄
+    warning_soft: '#E6D909', // 柔和黄
+    danger: '#FF0000',       // 霓虹红
+    // 热力图专用柔和配色
+    heatmap: {
+      low: '#1a0a33',        // 深紫
+      mid: '#4a148c',        // 中紫蓝
+      high: '#00D9FF'        // 青蓝
+    },
+    platform: {
+      mal: '#FF006E',        // MAL - 粉红
+      imdb: '#00D9FF',       // IMDb - 青蓝
+      bgm: '#39FF14'         // Bangumi - 绿色
+    },
+    backgrounds: {
+      dark: '#0a0e27',       // 深黑背景
+      darker: '#000000',     // 纯黑
+      grid: '#1a2050'        // 网格线颜色
+    },
+    text: {
+      primary: '#e0e0ff',    // 紫蓝文字
+      secondary: '#a0a0ff'   // 浅紫文字
+    }
   }
 };
 

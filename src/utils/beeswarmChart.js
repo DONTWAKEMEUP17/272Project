@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { getResponsiveChartConfig } from '../config/globalConfig';
+import { getResponsiveChartConfig, globalConfig } from '../config/globalConfig';
 
 /**
  * Beeswarm Chart - Individual Anime Titles with Cross-Platform Comparison
@@ -32,9 +32,9 @@ export class BeeswarmChart {
     
     this.platformKeys = ['mal', 'imdb', 'bgm'];
     this.platformColors = {
-      mal: '#2563eb',   // blue
-      imdb: '#f59e0b',  // amber
-      bgm: '#8b5cf6'    // violet
+      mal: globalConfig.cyberpunkPalette.platform.mal,
+      imdb: globalConfig.cyberpunkPalette.platform.imdb,
+      bgm: globalConfig.cyberpunkPalette.platform.bgm
     };
     
     this.rScale = null;
@@ -166,7 +166,7 @@ export class BeeswarmChart {
         .style('background', 'rgba(0, 0, 0, 0.9)')
         .style('color', '#fff')
         .style('border-radius', '4px')
-        .style('font-size', '12px')
+        .style('font-size', '24px')
         .style('pointer-events', 'none')
         .style('display', 'none')
         .style('z-index', '1000')
@@ -267,14 +267,14 @@ export class BeeswarmChart {
         .attr('transform', `translate(0, ${this.yScale(platform) + this.yScale.bandwidth() + 20})`)
         .call(d3.axisBottom(this.xScales[platform]))
         .selectAll('text')
-        .attr('font-size', 11);
+        .attr('font-size', 22);
 
       // X-axis label
       platformGroup.append('text')
         .attr('x', plotWidth / 2)
         .attr('y', this.yScale(platform) + this.yScale.bandwidth() + 50)
         .attr('text-anchor', 'middle')
-        .attr('font-size', 12)
+        .attr('font-size', 24)
         .style('font-weight', 'bold')
         .text('Rating');
 
@@ -284,7 +284,7 @@ export class BeeswarmChart {
         .attr('x', plotWidth / 2)
         .attr('y', -15)
         .attr('text-anchor', 'middle')
-        .attr('font-size', 14)
+        .attr('font-size', 28)
         .style('font-weight', 'bold')
         .style('fill', this.platformColors[platform])
         .text(this.platformLabels[platform]);
@@ -295,7 +295,7 @@ export class BeeswarmChart {
       .attr('x', -this.innerHeight / 2)
       .attr('y', -80)
       .attr('text-anchor', 'middle')
-      .attr('font-size', 12)
+      .attr('font-size', 24)
       .style('font-weight', 'bold')
       .attr('transform', 'rotate(-90)')
       .text('Platforms');
@@ -316,7 +316,7 @@ export class BeeswarmChart {
       .attr('transform', `translate(${legendX}, ${legendY})`);
 
     legend.append('text')
-      .attr('font-size', 11)
+      .attr('font-size', 22)
       .style('font-weight', 'bold')
       .text('Vote Count');
 
@@ -345,7 +345,7 @@ export class BeeswarmChart {
       .attr('class', 'legend-label')
       .attr('x', 45)
       .attr('y', (d, i) => 25 + i * 35)
-      .attr('font-size', 10)
+      .attr('font-size', 20)
       .style('dominant-baseline', 'middle')
       .text(d => d.label);
   }
@@ -393,9 +393,36 @@ export class BeeswarmChart {
     const containerRect = this.container.getBoundingClientRect();
     this.tooltip
       .style('display', 'block')
-      .html(tooltipText)
-      .style('left', (event.clientX - containerRect.left + 20) + 'px')
-      .style('top', (event.clientY - containerRect.top + 55) + 'px');
+      .html(tooltipText);
+    
+    // Calculate position with boundary detection
+    setTimeout(() => {
+      const tooltipNode = this.tooltip.node();
+      const tooltipRect = tooltipNode.getBoundingClientRect();
+      const tooltipWidth = tooltipRect.width;
+      const tooltipHeight = tooltipRect.height;
+      
+      let left = event.clientX - containerRect.left + 20;
+      let top = event.clientY - containerRect.top + 55;
+      
+      // Check right boundary
+      if (left + tooltipWidth > containerRect.width) {
+        left = event.clientX - containerRect.left - tooltipWidth - 20;
+      }
+      
+      // Check bottom boundary
+      if (top + tooltipHeight > containerRect.height) {
+        top = event.clientY - containerRect.top - tooltipHeight - 20;
+      }
+      
+      // Ensure minimum values
+      left = Math.max(0, left);
+      top = Math.max(0, top);
+      
+      this.tooltip
+        .style('left', left + 'px')
+        .style('top', top + 'px');
+    }, 0);
   }
 
   /**
@@ -404,9 +431,31 @@ export class BeeswarmChart {
   updateTooltipPosition(event) {
     if (this.tooltip) {
       const containerRect = this.container.getBoundingClientRect();
+      const tooltipNode = this.tooltip.node();
+      const tooltipRect = tooltipNode.getBoundingClientRect();
+      const tooltipWidth = tooltipRect.width;
+      const tooltipHeight = tooltipRect.height;
+      
+      let left = event.clientX - containerRect.left + 60;
+      let top = event.clientY - containerRect.top + 85;
+      
+      // Check right boundary
+      if (left + tooltipWidth > containerRect.width) {
+        left = event.clientX - containerRect.left - tooltipWidth - 20;
+      }
+      
+      // Check bottom boundary
+      if (top + tooltipHeight > containerRect.height) {
+        top = event.clientY - containerRect.top - tooltipHeight - 20;
+      }
+      
+      // Ensure minimum values
+      left = Math.max(0, left);
+      top = Math.max(0, top);
+      
       this.tooltip
-        .style('left', (event.clientX - containerRect.left + 60) + 'px')
-        .style('top', (event.clientY - containerRect.top + 85) + 'px');
+        .style('left', left + 'px')
+        .style('top', top + 'px');
     }
   }
 

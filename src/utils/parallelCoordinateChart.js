@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { getResponsiveChartConfig } from '../config/globalConfig';
+import { getResponsiveChartConfig, globalConfig } from '../config/globalConfig';
 
 /**
  * Parallel Coordinate Chart - Ranking Divergence Within a Genre
@@ -41,9 +41,9 @@ export class ParallelCoordinateChart {
     };
     
     this.platformColors = {
-      mal: '#2563eb',   // blue
-      imdb: '#f59e0b',  // amber
-      bgm: '#8b5cf6'    // violet
+      mal: globalConfig.cyberpunkPalette.platform.mal,
+      imdb: globalConfig.cyberpunkPalette.platform.imdb,
+      bgm: globalConfig.cyberpunkPalette.platform.bgm
     };
     
     this.tooltip = null;
@@ -155,7 +155,7 @@ export class ParallelCoordinateChart {
         .style('background', 'rgba(0, 0, 0, 0.9)')
         .style('color', '#fff')
         .style('border-radius', '4px')
-        .style('font-size', '12px')
+        .style('font-size', '24px')
         .style('pointer-events', 'none')
         .style('display', 'none')
         .style('z-index', '1000')
@@ -204,15 +204,15 @@ export class ParallelCoordinateChart {
         const ranks = [d.mal_rank_num, d.imdb_rank_num, d.bgm_rank_num]
           .filter(r => r !== null);
         
-        if (ranks.length < 2) return '#999';
+        if (ranks.length < 2) return globalConfig.cyberpunkPalette.backgrounds.grid;
         
         const mean = ranks.reduce((a, b) => a + b, 0) / ranks.length;
         const variance = ranks.reduce((sum, r) => sum + Math.pow(r - mean, 2), 0) / ranks.length;
         
         // Low variance = green (agreement), high variance = red (disagreement)
-        if (variance < 100) return '#10b981';      // green - stable
-        if (variance < 500) return '#f59e0b';      // amber - moderate
-        return '#ef4444';                          // red - divergent
+        if (variance < 100) return globalConfig.cyberpunkPalette.success_soft;      // green - stable
+        if (variance < 500) return globalConfig.cyberpunkPalette.warning_soft;      // amber - moderate
+        return globalConfig.cyberpunkPalette.primary_soft;                          // red - divergent
       })
       .attr('stroke-width', 1.5)
       .attr('opacity', 0.5)
@@ -244,7 +244,7 @@ export class ParallelCoordinateChart {
         .attr('y1', 0)
         .attr('x2', x)
         .attr('y2', this.innerHeight)
-        .attr('stroke', '#e5e7eb')
+        .attr('stroke', globalConfig.cyberpunkPalette.backgrounds.grid)
         .attr('stroke-width', 2);
 
       // Platform label
@@ -253,7 +253,7 @@ export class ParallelCoordinateChart {
         .attr('x', x)
         .attr('y', -10)
         .attr('text-anchor', 'middle')
-        .attr('font-size', 12)
+        .attr('font-size', 24)
         .style('font-weight', 'bold')
         .style('fill', this.platformColors[platform])
         .text(this.platformLabels[platform]);
@@ -269,11 +269,11 @@ export class ParallelCoordinateChart {
           if (d === 1) {
             d3.select(this).append('circle')
               .attr('r', 4)
-              .attr('fill', '#10b981');
+              .attr('fill', globalConfig.cyberpunkPalette.success_soft);
           } else {
             d3.select(this).append('circle')
               .attr('r', 2)
-              .attr('fill', '#ccc');
+              .attr('fill', globalConfig.cyberpunkPalette.backgrounds.grid);
           }
           
           if (d === 1) {
@@ -281,7 +281,7 @@ export class ParallelCoordinateChart {
               .attr('x', -30)
               .attr('y', 4)
               .attr('text-anchor', 'end')
-              .attr('font-size', 9)
+              .attr('font-size', 18)
               .text(d);
           }
         });
@@ -293,7 +293,7 @@ export class ParallelCoordinateChart {
       .attr('x', -this.innerHeight / 2)
       .attr('y', -100)
       .attr('text-anchor', 'middle')
-      .attr('font-size', 13)
+      .attr('font-size', 26)
       .style('font-weight', 'bold')
       .attr('transform', 'rotate(-90)')
       .text('Rank Position (1 = Top)');
@@ -315,14 +315,14 @@ export class ParallelCoordinateChart {
 
     // Title
     legend.append('text')
-      .attr('font-size', 11)
+      .attr('font-size', 22)
       .style('font-weight', 'bold')
       .text('Ranking Stability');
 
     const items = [
-      { color: '#10b981', label: 'Stable' },
-      { color: '#f59e0b', label: 'Moderate' },
-      { color: '#ef4444', label: 'Divergent' }
+      { color: globalConfig.cyberpunkPalette.success_soft, label: 'Stable' },
+      { color: globalConfig.cyberpunkPalette.warning_soft, label: 'Moderate' },
+      { color: globalConfig.cyberpunkPalette.primary_soft, label: 'Divergent' }
     ];
 
     items.forEach((item, i) => {
@@ -337,7 +337,7 @@ export class ParallelCoordinateChart {
       legend.append('text')
         .attr('x', 20)
         .attr('y', 22 + i * 18)
-        .attr('font-size', 10)
+        .attr('font-size', 20)
         .text(item.label);
     });
   }
@@ -413,9 +413,36 @@ export class ParallelCoordinateChart {
     const containerRect = this.container.getBoundingClientRect();
     this.tooltip
       .style('display', 'block')
-      .html(tooltipText)
-      .style('left', (event.clientX - containerRect.left + 50) + 'px')
-      .style('top', (event.clientY - containerRect.top + 85) + 'px');
+      .html(tooltipText);
+    
+    // Calculate position with boundary detection
+    setTimeout(() => {
+      const tooltipNode = this.tooltip.node();
+      const tooltipRect = tooltipNode.getBoundingClientRect();
+      const tooltipWidth = tooltipRect.width;
+      const tooltipHeight = tooltipRect.height;
+      
+      let left = event.clientX - containerRect.left + 50;
+      let top = event.clientY - containerRect.top + 85;
+      
+      // Check right boundary
+      if (left + tooltipWidth > containerRect.width) {
+        left = event.clientX - containerRect.left - tooltipWidth - 20;
+      }
+      
+      // Check bottom boundary
+      if (top + tooltipHeight > containerRect.height) {
+        top = event.clientY - containerRect.top - tooltipHeight - 20;
+      }
+      
+      // Ensure minimum values
+      left = Math.max(0, left);
+      top = Math.max(0, top);
+      
+      this.tooltip
+        .style('left', left + 'px')
+        .style('top', top + 'px');
+    }, 0);
   }
 
   /**
@@ -424,9 +451,31 @@ export class ParallelCoordinateChart {
   updateTooltipPosition(event) {
     if (this.tooltip) {
       const containerRect = this.container.getBoundingClientRect();
+      const tooltipNode = this.tooltip.node();
+      const tooltipRect = tooltipNode.getBoundingClientRect();
+      const tooltipWidth = tooltipRect.width;
+      const tooltipHeight = tooltipRect.height;
+      
+      let left = event.clientX - containerRect.left + 50;
+      let top = event.clientY - containerRect.top + 85;
+      
+      // Check right boundary
+      if (left + tooltipWidth > containerRect.width) {
+        left = event.clientX - containerRect.left - tooltipWidth - 20;
+      }
+      
+      // Check bottom boundary
+      if (top + tooltipHeight > containerRect.height) {
+        top = event.clientY - containerRect.top - tooltipHeight - 20;
+      }
+      
+      // Ensure minimum values
+      left = Math.max(0, left);
+      top = Math.max(0, top);
+      
       this.tooltip
-        .style('left', (event.clientX - containerRect.left + 50) + 'px')
-        .style('top', (event.clientY - containerRect.top + 85) + 'px');
+        .style('left', left + 'px')
+        .style('top', top + 'px');
     }
   }
 

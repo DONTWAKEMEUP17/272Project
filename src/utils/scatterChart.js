@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { getResponsiveChartConfig } from '../config/globalConfig';
+import { getResponsiveChartConfig, globalConfig } from '../config/globalConfig';
 
 /**
  * Scatter Chart - Rating Stability and Popularity Analysis
@@ -160,7 +160,7 @@ export class ScatterChart {
     // Color scale: variance (red = unstable, green = stable)
     this.colorScale = d3.scaleLinear()
       .domain([0, maxVariance / 2, maxVariance])
-      .range(['#22c55e', '#fbbf24', '#ef4444'])  // green -> yellow -> red
+      .range([globalConfig.cyberpunkPalette.success_soft, globalConfig.cyberpunkPalette.warning_soft, globalConfig.cyberpunkPalette.primary_soft])
       .clamp(true);
   }
 
@@ -178,7 +178,7 @@ export class ScatterChart {
         .style('background', 'rgba(0, 0, 0, 0.9)')
         .style('color', '#fff')
         .style('border-radius', '4px')
-        .style('font-size', '12px')
+        .style('font-size', '24px')
         .style('pointer-events', 'none')
         .style('display', 'none')
         .style('z-index', '1000')
@@ -251,7 +251,7 @@ export class ScatterChart {
           return d;
         }))
       .selectAll('text')
-      .attr('font-size', 11);
+      .attr('font-size', 22);
 
     // X-axis label
     this.g.append('text')
@@ -259,7 +259,7 @@ export class ScatterChart {
       .attr('x', this.innerWidth / 2)
       .attr('y', this.innerHeight + 60)
       .attr('text-anchor', 'middle')
-      .attr('font-size', 13)
+      .attr('font-size', 26)
       .style('font-weight', 'bold')
       .text('Total Vote Count (Popularity)');
 
@@ -268,7 +268,7 @@ export class ScatterChart {
       .attr('class', 'axis')
       .call(d3.axisLeft(this.yScale).ticks(5))
       .selectAll('text')
-      .attr('font-size', 11);
+      .attr('font-size', 22);
 
     // Y-axis label
     this.g.append('text')
@@ -276,7 +276,7 @@ export class ScatterChart {
       .attr('x', -this.innerHeight / 2)
       .attr('y', -100)
       .attr('text-anchor', 'middle')
-      .attr('font-size', 13)
+      .attr('font-size', 26)
       .style('font-weight', 'bold')
       .attr('transform', 'rotate(-90)')
       .text('Average Rating');
@@ -298,17 +298,17 @@ export class ScatterChart {
 
     // Title
     legend.append('text')
-      .attr('font-size', 11)
+      .attr('font-size', 22)
       .style('font-weight', 'bold')
       .text('Rating Stability');
 
     // Color legend
     legend.append('text')
-      .attr('font-size', 10)
+      .attr('font-size', 20)
       .attr('y', 18)
       .text('Variance:');
 
-    const colors = ['#22c55e', '#fbbf24', '#ef4444'];
+    const colors = [globalConfig.cyberpunkPalette.success_soft, globalConfig.cyberpunkPalette.warning_soft, globalConfig.cyberpunkPalette.primary_soft];
     const labels = ['Stable', 'Moderate', 'Unstable'];
 
     colors.forEach((color, i) => {
@@ -323,7 +323,7 @@ export class ScatterChart {
       legend.append('text')
         .attr('x', 18)
         .attr('y', 30 + i * 18)
-        .attr('font-size', 10)
+        .attr('font-size', 20)
         .attr('dominant-baseline', 'middle')
         .text(labels[i]);
     });
@@ -374,7 +374,7 @@ export class ScatterChart {
       <br/>
       <strong>Rating Variance:</strong> ${variance.toFixed(3)}
       <br/>
-      <span style="font-size: 11px; opacity: 0.8;">
+      <span style="font-size: 22px; opacity: 0.8;">
         ${variance < 0.5 ? '✓ Stable' : variance < 1.5 ? '⚠ Moderate' : '✕ Unstable'}
       </span>
     `;
@@ -382,9 +382,36 @@ export class ScatterChart {
     const containerRect = this.container.getBoundingClientRect();
     this.tooltip
       .style('display', 'block')
-      .html(tooltipText)
-      .style('left', (event.clientX - containerRect.left + 50) + 'px')
-      .style('top', (event.clientY - containerRect.top + 85) + 'px');
+      .html(tooltipText);
+    
+    // Calculate position with boundary detection
+    setTimeout(() => {
+      const tooltipNode = this.tooltip.node();
+      const tooltipRect = tooltipNode.getBoundingClientRect();
+      const tooltipWidth = tooltipRect.width;
+      const tooltipHeight = tooltipRect.height;
+      
+      let left = event.clientX - containerRect.left + 50;
+      let top = event.clientY - containerRect.top + 85;
+      
+      // Check right boundary
+      if (left + tooltipWidth > containerRect.width) {
+        left = event.clientX - containerRect.left - tooltipWidth - 20;
+      }
+      
+      // Check bottom boundary
+      if (top + tooltipHeight > containerRect.height) {
+        top = event.clientY - containerRect.top - tooltipHeight - 20;
+      }
+      
+      // Ensure minimum values
+      left = Math.max(0, left);
+      top = Math.max(0, top);
+      
+      this.tooltip
+        .style('left', left + 'px')
+        .style('top', top + 'px');
+    }, 0);
   }
 
   /**
@@ -393,9 +420,31 @@ export class ScatterChart {
   updateTooltipPosition(event) {
     if (this.tooltip) {
       const containerRect = this.container.getBoundingClientRect();
+      const tooltipNode = this.tooltip.node();
+      const tooltipRect = tooltipNode.getBoundingClientRect();
+      const tooltipWidth = tooltipRect.width;
+      const tooltipHeight = tooltipRect.height;
+      
+      let left = event.clientX - containerRect.left + 50;
+      let top = event.clientY - containerRect.top + 85;
+      
+      // Check right boundary
+      if (left + tooltipWidth > containerRect.width) {
+        left = event.clientX - containerRect.left - tooltipWidth - 20;
+      }
+      
+      // Check bottom boundary
+      if (top + tooltipHeight > containerRect.height) {
+        top = event.clientY - containerRect.top - tooltipHeight - 20;
+      }
+      
+      // Ensure minimum values
+      left = Math.max(0, left);
+      top = Math.max(0, top);
+      
       this.tooltip
-        .style('left', (event.clientX - containerRect.left + 50) + 'px')
-        .style('top', (event.clientY - containerRect.top + 85) + 'px');
+        .style('left', left + 'px')
+        .style('top', top + 'px');
     }
   }
 

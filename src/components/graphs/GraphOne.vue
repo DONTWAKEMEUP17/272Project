@@ -8,6 +8,7 @@
 <script setup>
 import { onMounted, ref, watch, onBeforeUnmount, defineExpose } from 'vue';
 import { useSharedData } from '../../composables/useSharedData';
+import { useResponsiveConfig } from '../../composables/useResponsiveConfig';
 import { buildGenreHeatmapData } from '../../utils/dataLoader';
 import { HeatmapChart } from '../../utils/heatmapChart';
 
@@ -27,7 +28,8 @@ const props = defineProps({
 });
 
 const chartRef = ref(null);
-const { globalConfig, loadData } = useSharedData();
+const { loadData } = useSharedData();
+const { chartConfig } = useResponsiveConfig();
 let heatmapInstance = null;
 let rawHeatmapData = null;
 
@@ -36,10 +38,17 @@ onMounted(async () => {
   const rawData = await loadData();
   rawHeatmapData = buildGenreHeatmapData(rawData);
   
-  // Create and initialize heatmap instance
-  heatmapInstance = new HeatmapChart(globalConfig.chart);
+  // Create and initialize heatmap instance with responsive config
+  heatmapInstance = new HeatmapChart(chartConfig.value);
   heatmapInstance.init(chartRef.value, rawHeatmapData, props.sharedState || {});
 });
+
+// Watch for chart config changes (window resize) and update visualization
+watch(chartConfig, (newConfig) => {
+  if (heatmapInstance) {
+    heatmapInstance.resize();
+  }
+}, { deep: true });
 
 // Watch for step state changes and update visualization
 watch(() => props.stepState, (newState) => {
@@ -55,20 +64,8 @@ watch(() => props.sharedState, (newState) => {
   }
 }, { deep: true });
 
-// Handle window resize
-const handleResize = () => {
-  if (heatmapInstance) {
-    heatmapInstance.resize();
-  }
-};
-
-onMounted(() => {
-  window.addEventListener('resize', handleResize);
-});
-
 // Cleanup on unmount
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', handleResize);
   if (heatmapInstance) {
     heatmapInstance.destroy();
   }

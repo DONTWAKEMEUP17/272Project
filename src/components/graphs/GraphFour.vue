@@ -8,6 +8,7 @@
 <script setup>
 import { onMounted, ref, watch, onBeforeUnmount, defineExpose } from 'vue';
 import { useSharedData } from '../../composables/useSharedData';
+import { useResponsiveConfig } from '../../composables/useResponsiveConfig';
 import { RadarChart } from '../../utils/radarChart';
 
 const props = defineProps({
@@ -26,17 +27,25 @@ const props = defineProps({
 });
 
 const chartRef = ref(null);
-const { globalConfig, loadData } = useSharedData();
+const { loadData } = useSharedData();
+const { chartConfig } = useResponsiveConfig();
 let radarInstance = null;
 
 // Initialize radar on mount
 onMounted(async () => {
   const rawData = await loadData();
   
-  // Create and initialize radar instance
-  radarInstance = new RadarChart(globalConfig.chart);
+  // Create and initialize radar instance with responsive config
+  radarInstance = new RadarChart(chartConfig.value);
   radarInstance.init(chartRef.value, rawData, props.sharedState || {});
 });
+
+// Watch for chart config changes (window resize) and update visualization
+watch(chartConfig, (newConfig) => {
+  if (radarInstance) {
+    radarInstance.resize();
+  }
+}, { deep: true });
 
 // Watch for step state changes and update visualization
 watch(() => props.stepState, (newState) => {
@@ -52,20 +61,8 @@ watch(() => props.sharedState, (newState) => {
   }
 }, { deep: true });
 
-// Handle window resize
-const handleResize = () => {
-  if (radarInstance) {
-    radarInstance.resize();
-  }
-};
-
-onMounted(() => {
-  window.addEventListener('resize', handleResize);
-});
-
 // Cleanup on unmount
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', handleResize);
   if (radarInstance) {
     radarInstance.destroy();
   }
@@ -75,7 +72,7 @@ onBeforeUnmount(() => {
 defineExpose({
   init: (container, data, sharedState) => {
     if (!radarInstance) {
-      radarInstance = new RadarChart(globalConfig.chart);
+      radarInstance = new RadarChart(chartConfig.value);
     }
     radarInstance.init(container, data, sharedState);
   },

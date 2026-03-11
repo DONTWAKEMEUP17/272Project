@@ -8,6 +8,7 @@
 <script setup>
 import { onMounted, ref, watch, onBeforeUnmount, defineExpose } from 'vue';
 import { useSharedData } from '../../composables/useSharedData';
+import { useResponsiveConfig } from '../../composables/useResponsiveConfig';
 import { BeeswarmChart } from '../../utils/beeswarmChart';
 
 const props = defineProps({
@@ -26,17 +27,25 @@ const props = defineProps({
 });
 
 const chartRef = ref(null);
-const { globalConfig, loadData } = useSharedData();
+const { loadData } = useSharedData();
+const { chartConfig } = useResponsiveConfig();
 let beeswarmInstance = null;
 
 // Initialize beeswarm on mount
 onMounted(async () => {
   const rawData = await loadData();
   
-  // Create and initialize beeswarm instance
-  beeswarmInstance = new BeeswarmChart(globalConfig.chart);
+  // Create and initialize beeswarm instance with responsive config
+  beeswarmInstance = new BeeswarmChart(chartConfig.value);
   beeswarmInstance.init(chartRef.value, rawData, props.sharedState || {});
 });
+
+// Watch for chart config changes (window resize) and update visualization
+watch(chartConfig, (newConfig) => {
+  if (beeswarmInstance) {
+    beeswarmInstance.resize();
+  }
+}, { deep: true });
 
 // Watch for step state changes and update visualization
 watch(() => props.stepState, (newState) => {
@@ -52,20 +61,8 @@ watch(() => props.sharedState, (newState) => {
   }
 }, { deep: true });
 
-// Handle window resize
-const handleResize = () => {
-  if (beeswarmInstance) {
-    beeswarmInstance.resize();
-  }
-};
-
-onMounted(() => {
-  window.addEventListener('resize', handleResize);
-});
-
 // Cleanup on unmount
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', handleResize);
   if (beeswarmInstance) {
     beeswarmInstance.destroy();
   }

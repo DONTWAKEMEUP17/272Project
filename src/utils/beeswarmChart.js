@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import { getResponsiveChartConfig } from '../config/globalConfig';
 
 /**
  * Beeswarm Chart - Individual Anime Titles with Cross-Platform Comparison
@@ -465,11 +466,36 @@ export class BeeswarmChart {
   resize() {
     if (!this.svg || !this.container) return;
 
-    const width = this.container.clientWidth || this.config.width;
-    const height = this.container.clientHeight || this.config.height;
+    // 获取新的窗口宽度，并计算响应式配置
+    const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1600;
+    const newConfig = getResponsiveChartConfig(windowWidth);
 
+    // 更新内部配置
+    this.config = newConfig;
+    
+    const width = newConfig.width;
+    const height = newConfig.height;
+    const margin = newConfig.margin;
+
+    // 更新 SVG 的 viewBox 和尺寸
     this.svg
-      .attr('viewBox', `0 0 ${width} ${height}`);
+      .attr('viewBox', `0 0 ${width} ${height}`)
+      .attr('width', '100%')
+      .attr('height', '100%');
+
+    // 重新计算内部宽度和高度
+    this.innerWidth = width - margin.left - margin.right;
+    this.innerHeight = height - margin.top - margin.bottom;
+
+    // 更新 g 元素的位置
+    this.g.attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+    // 重新设置 scales
+    this.setupScales();
+
+    // 重新渲染图表内容（使用相同的数据）
+    const filteredData = this.getFilteredDataset(this.sharedState?.selectedGenre);
+    this.renderBeeswarms(filteredData);
   }
 
   /**

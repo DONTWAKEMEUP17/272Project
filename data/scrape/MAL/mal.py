@@ -33,7 +33,7 @@ def fetch_page(page: int):
     r.raise_for_status()
     return r.json().get("data", [])
 
-def main(min_year=2000, need=200):
+def main(min_year=2000, need=400):
     rows = []
     page = 1
 
@@ -65,12 +65,12 @@ def main(min_year=2000, need=200):
         page += 1
         time.sleep(0.5)  # 避免撞 rate limit 
 
-    with open("mal_top_tv_2000plus_200_jp.csv", "w", newline="", encoding="utf-8") as f:
+    with open("mal_top_tv_2000plus_400_jp.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=rows[0].keys())
         w.writeheader()
         w.writerows(rows)
 
-    print("Saved:", "mal_top_tv_2000plus_200_jp.csv", "rows:", len(rows))
+    print("Saved:", "mal_top_tv_2000plus_400_jp.csv", "rows:", len(rows))
 
 if __name__ == "__main__":
-    main(min_year=2000, need=200)
+    main(min_year=2000, need=400)

@@ -8,6 +8,7 @@
 <script setup>
 import { onMounted, ref, watch, onBeforeUnmount, defineExpose } from 'vue';
 import { useSharedData } from '../../composables/useSharedData';
+import { useResponsiveConfig } from '../../composables/useResponsiveConfig';
 import { ParallelCoordinateChart } from '../../utils/parallelCoordinateChart';
 
 const props = defineProps({
@@ -26,17 +27,25 @@ const props = defineProps({
 });
 
 const chartRef = ref(null);
-const { globalConfig, loadData } = useSharedData();
+const { loadData } = useSharedData();
+const { chartConfig } = useResponsiveConfig();
 let parallelInstance = null;
 
 // Initialize parallel coordinate on mount
 onMounted(async () => {
   const rawData = await loadData();
   
-  // Create and initialize parallel coordinate instance
-  parallelInstance = new ParallelCoordinateChart(globalConfig.chart);
+  // Create and initialize parallel coordinate instance with responsive config
+  parallelInstance = new ParallelCoordinateChart(chartConfig.value);
   parallelInstance.init(chartRef.value, rawData, props.sharedState || {});
 });
+
+// Watch for chart config changes (window resize) and update visualization
+watch(chartConfig, (newConfig) => {
+  if (parallelInstance) {
+    parallelInstance.resize();
+  }
+}, { deep: true });
 
 // Watch for step state changes and update visualization
 watch(() => props.stepState, (newState) => {
@@ -52,20 +61,8 @@ watch(() => props.sharedState, (newState) => {
   }
 }, { deep: true });
 
-// Handle window resize
-const handleResize = () => {
-  if (parallelInstance) {
-    parallelInstance.resize();
-  }
-};
-
-onMounted(() => {
-  window.addEventListener('resize', handleResize);
-});
-
 // Cleanup on unmount
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', handleResize);
   if (parallelInstance) {
     parallelInstance.destroy();
   }
@@ -75,7 +72,7 @@ onBeforeUnmount(() => {
 defineExpose({
   init: (container, data, sharedState) => {
     if (!parallelInstance) {
-      parallelInstance = new ParallelCoordinateChart(globalConfig.chart);
+      parallelInstance = new ParallelCoordinateChart(chartConfig.value);
     }
     parallelInstance.init(container, data, sharedState);
   },

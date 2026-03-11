@@ -87,17 +87,62 @@ body {
   border-radius: 12px;
   padding: 1rem;
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+  display: flex;
+  flex-direction: column;
 }
 
 .graph-title {
-  margin: 0 0 0.75rem;
-  font-size: 1.05rem;
+  margin: 0 0 1rem;
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  font-weight: 600;
+  color: #1f2937;
+  flex-shrink: 0;
 }
 
 .graph-canvas {
   width: 100%;
-  min-height: 240px;
-  height: calc(100% - 2rem);
+  flex: 1;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* 限制最大高度，防止过大 */
+  max-height: calc(100vh - 200px);
+}
+
+/* 大屏幕 (1400px+) */
+@media (min-width: 1400px) {
+  .graph-canvas {
+    min-height: 800px;
+  }
+}
+
+/* 标准桌面 (1000-1400px) */
+@media (min-width: 1000px) and (max-width: 1399px) {
+  .graph-canvas {
+    min-height: 750px;
+  }
+}
+
+/* 平板 (768-1000px) */
+@media (min-width: 768px) and (max-width: 999px) {
+  .graph-canvas {
+    min-height: 600px;
+  }
+}
+
+/* 中等手机 (480-768px) */
+@media (min-width: 480px) and (max-width: 767px) {
+  .graph-canvas {
+    min-height: 500px;
+  }
+}
+
+/* 小手机 (< 480px) */
+@media (max-width: 479px) {
+  .graph-canvas {
+    min-height: 400px;
+  }
 }
 
 @media (max-width: 900px) {

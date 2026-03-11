@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import { getResponsiveChartConfig } from '../config/globalConfig';
 
 /**
  * Radar Chart - Genre Bias Through Radar Profiles
@@ -23,7 +24,7 @@ export class RadarChart {
     this.config = {
       width: config.width || 1600,
       height: config.height || 700,
-      margin: config.margin || { top: 40, right: 40, bottom: 80, left: 120 }
+      margin: config.margin || { top: 20, right: 40, bottom: 100, left: 120 }
     };
     this.container = null;
     this.svg = null;
@@ -192,8 +193,8 @@ export class RadarChart {
     // Clear previous content
     this.g.selectAll('.radar-group').remove();
 
-    const radarSize = 120; // Size of each radar circle
-    const padding = 40;    // Padding between radars
+    const radarSize = 180; // Size of each radar circle (increased for better visibility)
+    const padding = 50;    // Padding between radars
     const cols = Math.floor(this.innerWidth / (radarSize + padding));
     const rows = Math.ceil(dataToRender.length / cols);
 
@@ -421,11 +422,32 @@ export class RadarChart {
   resize() {
     if (!this.svg || !this.container) return;
 
-    const width = this.container.clientWidth || this.config.width;
-    const height = this.container.clientHeight || this.config.height;
+    // 获取新的窗口宽度，并计算响应式配置
+    const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1600;
+    const newConfig = getResponsiveChartConfig(windowWidth);
 
+    // 更新内部配置
+    this.config = newConfig;
+    
+    const width = newConfig.width;
+    const height = newConfig.height;
+    const margin = newConfig.margin;
+
+    // 更新 SVG 的 viewBox 和尺寸
     this.svg
-      .attr('viewBox', `0 0 ${width} ${height}`);
+      .attr('viewBox', `0 0 ${width} ${height}`)
+      .attr('width', '100%')
+      .attr('height', '100%');
+
+    // 重新计算内部宽度和高度
+    this.innerWidth = width - margin.left - margin.right;
+    this.innerHeight = height - margin.top - margin.bottom;
+
+    // 更新 g 元素的位置
+    this.g.attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+    // 重新渲染图表内容（使用相同的数据）
+    this.renderRadarGallery(this.dataset);
   }
 
   /**

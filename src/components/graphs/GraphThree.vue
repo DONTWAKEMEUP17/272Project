@@ -8,6 +8,7 @@
 <script setup>
 import { onMounted, ref, watch, onBeforeUnmount, defineExpose } from 'vue';
 import { useSharedData } from '../../composables/useSharedData';
+import { useResponsiveConfig } from '../../composables/useResponsiveConfig';
 import { ScatterChart } from '../../utils/scatterChart';
 
 const props = defineProps({
@@ -26,17 +27,25 @@ const props = defineProps({
 });
 
 const chartRef = ref(null);
-const { globalConfig, loadData } = useSharedData();
+const { loadData } = useSharedData();
+const { chartConfig } = useResponsiveConfig();
 let scatterInstance = null;
 
 // Initialize scatter on mount
 onMounted(async () => {
   const rawData = await loadData();
   
-  // Create and initialize scatter instance
-  scatterInstance = new ScatterChart(globalConfig.chart);
+  // Create and initialize scatter instance with responsive config
+  scatterInstance = new ScatterChart(chartConfig.value);
   scatterInstance.init(chartRef.value, rawData, props.sharedState || {});
 });
+
+// Watch for chart config changes (window resize) and update visualization
+watch(chartConfig, (newConfig) => {
+  if (scatterInstance) {
+    scatterInstance.resize();
+  }
+}, { deep: true });
 
 // Watch for step state changes and update visualization
 watch(() => props.stepState, (newState) => {
@@ -52,20 +61,8 @@ watch(() => props.sharedState, (newState) => {
   }
 }, { deep: true });
 
-// Handle window resize
-const handleResize = () => {
-  if (scatterInstance) {
-    scatterInstance.resize();
-  }
-};
-
-onMounted(() => {
-  window.addEventListener('resize', handleResize);
-});
-
 // Cleanup on unmount
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', handleResize);
   if (scatterInstance) {
     scatterInstance.destroy();
   }

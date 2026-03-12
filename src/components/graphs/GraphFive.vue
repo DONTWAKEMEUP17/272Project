@@ -176,4 +176,11 @@ defineExpose({
 .stat-value.divergent {
   color: #ff4757;
 }
+
+@media (max-width: 900px) {
+  .stats-panel {
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+  }
+}
 </style>

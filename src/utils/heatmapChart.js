@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { getResponsiveChartConfig, globalConfig } from '../config/globalConfig';
+import { getContainerResponsiveChartConfig, globalConfig } from '../config/globalConfig';
 
 /**
  * Heatmap visualization following Component Contract
@@ -30,6 +30,8 @@ export class HeatmapChart {
   init(container, data, sharedState) {
     this.container = container;
     this.dataset = data;
+
+    this.config = getContainerResponsiveChartConfig(container?.clientWidth, container?.clientHeight);
 
     const width = this.config.width;
     const height = this.config.height;
@@ -103,9 +105,8 @@ export class HeatmapChart {
   resize() {
     if (!this.svg || !this.container) return;
 
-    // 获取新的窗口宽度，并计算响应式配置
-    const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1600;
-    const newConfig = getResponsiveChartConfig(windowWidth);
+    // 基于实际容器尺寸进行响应式计算（兼容分屏场景）
+    const newConfig = getContainerResponsiveChartConfig(this.container?.clientWidth, this.container?.clientHeight);
 
     // 更新内部配置
     this.config = newConfig;

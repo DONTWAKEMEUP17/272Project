@@ -110,12 +110,12 @@ defineExpose({
 
 .graph-canvas {
   width: 100%;
-  min-height: clamp(380px, 64vh, 780px);
+  min-height: clamp(380px, 45vh, 500px);
 }
 
 @media (max-width: 900px) {
   .graph-canvas {
-    min-height: clamp(340px, 56vh, 620px);
+    min-height: clamp(340px, 40vh, 420px);
   }
 }
 </style>

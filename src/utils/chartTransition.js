@@ -3,22 +3,17 @@
  *
  * This creates a simple crossfade from the active chart to the next chart
  * while the user scrolls through the active text step.
+ * 
+ * DISABLED: Temporarily disabled to fix window mismatch issues
  */
 export function getChartLayerStyle(layerIndex, activeStep, stepProgress, totalLayers) {
-  const clampedProgress = Math.max(0, Math.min(1, stepProgress));
-
+  // Temporarily disabled - only show the active layer
   let opacity = 0;
   let zIndex = 1;
 
   if (layerIndex === activeStep) {
-    opacity = 1 - clampedProgress;
+    opacity = 1;  // Always fully opaque for active layer
     zIndex = 3;
-  }
-
-  const nextIndex = Math.min(activeStep + 1, totalLayers - 1);
-  if (layerIndex === nextIndex) {
-    opacity = activeStep === totalLayers - 1 ? 1 : clampedProgress;
-    zIndex = 4;
   }
 
   return {

@@ -87,8 +87,9 @@ export class RadarChart {
     this.innerHeight = height - margin.top - margin.bottom;
 
     // Main group for all content
+    // Move up additional 100px
     this.g = this.svg.append('g')
-      .attr('transform', `translate(${margin.left}, ${margin.top})`);
+      .attr('transform', `translate(${margin.left}, ${margin.top - 100})`);
 
     // Create tooltip
     this.createTooltip();

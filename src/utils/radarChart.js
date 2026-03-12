@@ -64,6 +64,12 @@ export class RadarChart {
 
     this.config = getContainerResponsiveChartConfig(container?.clientWidth, container?.clientHeight);
 
+    // 为 radar chart 减少 top margin，让内容往上挪
+    this.config.margin = {
+      ...this.config.margin,
+      top: Math.max(8, Math.round(this.config.margin.top * 0.4))
+    };
+
     const width = this.config.width;
     const height = this.config.height;
     const margin = this.config.margin;
@@ -195,8 +201,14 @@ export class RadarChart {
     // Clear previous content
     this.g.selectAll('.radar-group').remove();
 
-    const radarSize = 180; // Size of each radar circle (increased for better visibility)
-    const padding = 50;    // Padding between radars
+    // 动态计算 radar 大小以适应容器
+    const padding = 25;
+    let radarSize = 85; // 默认大小 - 更小以适应容器
+    
+    // 根据数据量和容器宽度计算最优 radar 大小
+    const estimatedCols = Math.max(3, Math.min(5, Math.floor(this.innerWidth / 120)));
+    radarSize = Math.min(100, Math.floor((this.innerWidth - padding * (estimatedCols - 1)) / estimatedCols));
+    
     const cols = Math.floor(this.innerWidth / (radarSize + padding));
     const rows = Math.ceil(dataToRender.length / cols);
 
@@ -223,6 +235,12 @@ export class RadarChart {
     const radialScale = d3.scaleLinear()
       .domain([0, 100])
       .range([0, radius]);
+
+    // 根据 size 计算文字大小
+    const axisLabelSize = Math.max(10, size * 0.15); // 18 for size 120
+    const genreLabelSize = Math.max(12, size * 0.17); // 20 for size 120
+    const countLabelSize = Math.max(10, size * 0.13); // 16 for size 120
+    const dotRadius = Math.max(2, size * 0.025); // 3 for size 120
 
     // Axes: mal, imdb, bgm
     const axes = ['mal', 'imdb', 'bgm'];
@@ -266,7 +284,7 @@ export class RadarChart {
         .attr('y', labelY)
         .attr('text-anchor', 'middle')
         .attr('dominant-baseline', 'middle')
-        .attr('font-size', 18)
+        .attr('font-size', axisLabelSize)
         .style('font-weight', 'bold')
         .style('fill', this.platformColors[axis])
         .text(axis.toUpperCase());
@@ -312,7 +330,7 @@ export class RadarChart {
       .attr('class', 'radar-dot')
       .attr('cx', (d, i) => radialScale(d.value) * Math.cos(angleSlice * i - Math.PI / 2))
       .attr('cy', (d, i) => radialScale(d.value) * Math.sin(angleSlice * i - Math.PI / 2))
-      .attr('r', 3)
+      .attr('r', dotRadius)
       .attr('fill', d => this.platformColors[d.axis])
       .attr('opacity', 0.8);
 
@@ -322,7 +340,7 @@ export class RadarChart {
       .attr('x', 0)
       .attr('y', radius + 30)
       .attr('text-anchor', 'middle')
-      .attr('font-size', 20)
+      .attr('font-size', genreLabelSize)
       .style('font-weight', 'bold')
       .style('fill', '#7c3aed')
       .text(genreData.genre);
@@ -333,7 +351,7 @@ export class RadarChart {
       .attr('x', 0)
       .attr('y', radius + 42)
       .attr('text-anchor', 'middle')
-      .attr('font-size', 16)
+      .attr('font-size', countLabelSize)
       .style('fill', globalConfig.cyberpunkPalette.text.secondary)
       .text(`(${genreData.count} anime)`);
   }

@@ -81,12 +81,16 @@ export class BeeswarmChart {
       .attr('width', '100%')
       .attr('height', '100%');
 
-    this.innerWidth = width - margin.left - margin.right;
-    this.innerHeight = height - margin.top - margin.bottom;
+    this.innerWidth = (width - margin.left - margin.right) * 0.8;
+    this.innerHeight = (height - margin.top - margin.bottom) * 0.8;
+
+    // 计算缩小后的偏移量，让图表往右和往下移
+    const xOffset = (width - margin.left - margin.right) * 0.15;
+    const yOffset = 25;
 
     // Main group for all content
     this.g = this.svg.append('g')
-      .attr('transform', `translate(${margin.left}, ${margin.top})`);
+      .attr('transform', `translate(${margin.left + xOffset}, ${margin.top + yOffset})`);
 
     // Setup scales
     this.setupScales();
@@ -142,7 +146,7 @@ export class BeeswarmChart {
 
     this.rScale = d3.scaleSqrt()
       .domain([0, maxVotes])
-      .range([3, 15]);
+      .range([2, 8]);
   }
 
   /**
@@ -190,6 +194,13 @@ export class BeeswarmChart {
     this.g.selectAll('.platform-group').remove();
     this.g.selectAll('.axis').remove();
     this.g.selectAll('.platform-label').remove();
+
+    // 根据容器宽度计算字体缩放因子
+    const baseWidth = 1600;
+    const fontScale = Math.max(0.7, this.config.width / baseWidth);
+    const axisFontSize = Math.max(14, Math.round(22 * fontScale));
+    const labelFontSize = Math.max(16, Math.round(24 * fontScale));
+    const platformFontSize = Math.max(18, Math.round(28 * fontScale));
 
     const platforms = ['mal', 'imdb', 'bgm'];
     const plotWidth = this.innerWidth / 3 - 30;
@@ -242,7 +253,7 @@ export class BeeswarmChart {
       platformGroup.selectAll('circle')
         .data(platformData, d => d.id)
         .join('circle')
-        .attr('cx', d => d.x)
+        .attr('cx', d => d.x + (platform === 'imdb' ? 30 : 0))
         .attr('cy', d => d.y)
         .attr('r', d => this.rScale(d.votes))
         .attr('fill', this.platformColors[platform])
@@ -264,30 +275,33 @@ export class BeeswarmChart {
           this.hideTooltip();
         });
 
-      // X-axis
+      // X-axis - IMDB 向右移 30px
+      const axisXOffset = platform === 'imdb' ? 30 : 0;
+      const axisTransform = `translate(${axisXOffset}, ${this.yScale(platform) + this.yScale.bandwidth() + 20})`;
+      
       platformGroup.append('g')
         .attr('class', 'axis')
-        .attr('transform', `translate(0, ${this.yScale(platform) + this.yScale.bandwidth() + 20})`)
+        .attr('transform', axisTransform)
         .call(d3.axisBottom(this.xScales[platform]))
         .selectAll('text')
-        .attr('font-size', 22);
+        .attr('font-size', axisFontSize);
 
-      // X-axis label
+      // X-axis label - IMDB 也向右移 30px
       platformGroup.append('text')
-        .attr('x', plotWidth / 2)
+        .attr('x', plotWidth / 2 + (platform === 'imdb' ? 30 : 0))
         .attr('y', this.yScale(platform) + this.yScale.bandwidth() + 50)
         .attr('text-anchor', 'middle')
-        .attr('font-size', 24)
+        .attr('font-size', labelFontSize)
         .style('font-weight', 'bold')
         .text('Rating');
 
-      // Platform label
+      // Platform label - IMDB 也向右移 30px
       platformGroup.append('text')
         .attr('class', 'platform-label')
-        .attr('x', plotWidth / 2)
+        .attr('x', plotWidth / 2 + (platform === 'imdb' ? 30 : 0))
         .attr('y', -15)
         .attr('text-anchor', 'middle')
-        .attr('font-size', 28)
+        .attr('font-size', platformFontSize)
         .style('font-weight', 'bold')
         .style('fill', this.platformColors[platform])
         .text(this.platformLabels[platform]);
@@ -298,7 +312,7 @@ export class BeeswarmChart {
       .attr('x', -this.innerHeight / 2)
       .attr('y', -80)
       .attr('text-anchor', 'middle')
-      .attr('font-size', 24)
+      .attr('font-size', labelFontSize)
       .style('font-weight', 'bold')
       .attr('transform', 'rotate(-90)')
       .text('Platforms');
@@ -311,6 +325,11 @@ export class BeeswarmChart {
    * Render legend for bubble sizes
    */
   renderLegend(dataToRender = this.dataset) {
+    const baseWidth = 1600;
+    const fontScale = Math.max(0.7, this.config.width / baseWidth);
+    const legendTitleSize = Math.max(14, Math.round(22 * fontScale));
+    const legendLabelSize = Math.max(12, Math.round(20 * fontScale));
+
     const legendX = this.innerWidth - 120;
     const legendY = -50;
 
@@ -319,7 +338,7 @@ export class BeeswarmChart {
       .attr('transform', `translate(${legendX}, ${legendY})`);
 
     legend.append('text')
-      .attr('font-size', 22)
+      .attr('font-size', legendTitleSize)
       .style('font-weight', 'bold')
       .text('Vote Count');
 
@@ -348,7 +367,7 @@ export class BeeswarmChart {
       .attr('class', 'legend-label')
       .attr('x', 45)
       .attr('y', (d, i) => 25 + i * 35)
-      .attr('font-size', 20)
+      .attr('font-size', legendLabelSize)
       .style('dominant-baseline', 'middle')
       .text(d => d.label);
   }

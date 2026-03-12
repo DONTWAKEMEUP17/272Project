@@ -204,6 +204,15 @@ export class ScatterChart {
     this.g.selectAll('.axis-label').remove();
     this.g.selectAll('.legend').remove();
 
+    // 根据容器宽度计算字体缩放因子
+    const baseWidth = 1600;
+    const fontScale = Math.max(0.7, this.config.width / baseWidth);
+    const axisFontSize = Math.max(14, Math.round(22 * fontScale));
+    const axisLabelSize = Math.max(16, Math.round(26 * fontScale));
+    const legendTitleSize = Math.max(14, Math.round(22 * fontScale));
+    const legendSubtitleSize = Math.max(12, Math.round(18 * fontScale));
+    const legendItemSize = Math.max(10, Math.round(16 * fontScale));
+
     // Draw points (circles)
     this.g.selectAll('.scatter-point')
       .data(dataToRender, d => d.id)
@@ -254,7 +263,10 @@ export class ScatterChart {
           return d;
         }))
       .selectAll('text')
-      .attr('font-size', 22);
+      .attr('font-size', Math.max(10, axisFontSize - 3))
+      .attr('transform', 'rotate(-45)')
+      .style('text-anchor', 'end')
+      .style('dominant-baseline', 'middle');
 
     // X-axis label
     this.g.append('text')
@@ -262,7 +274,7 @@ export class ScatterChart {
       .attr('x', this.innerWidth / 2)
       .attr('y', this.innerHeight + 60)
       .attr('text-anchor', 'middle')
-      .attr('font-size', 26)
+      .attr('font-size', axisLabelSize)
       .style('font-weight', 'bold')
       .text('Total Vote Count (Popularity)');
 
@@ -271,7 +283,7 @@ export class ScatterChart {
       .attr('class', 'axis')
       .call(d3.axisLeft(this.yScale).ticks(5))
       .selectAll('text')
-      .attr('font-size', 22);
+      .attr('font-size', axisFontSize);
 
     // Y-axis label
     this.g.append('text')
@@ -279,19 +291,19 @@ export class ScatterChart {
       .attr('x', -this.innerHeight / 2)
       .attr('y', -100)
       .attr('text-anchor', 'middle')
-      .attr('font-size', 26)
+      .attr('font-size', axisLabelSize)
       .style('font-weight', 'bold')
       .attr('transform', 'rotate(-90)')
       .text('Average Rating');
 
     // Legend for bubble size and color
-    this.renderLegend();
+    this.renderLegend(legendTitleSize, legendSubtitleSize, legendItemSize);
   }
 
   /**
    * Render legend explaining bubble size and color
    */
-  renderLegend() {
+  renderLegend(titleSize = 22, subtitleSize = 18, itemSize = 16) {
     const legendX = this.innerWidth - 180;
     const legendY = -20;
 
@@ -301,32 +313,32 @@ export class ScatterChart {
 
     // Title
     legend.append('text')
-      .attr('font-size', 22)
+      .attr('font-size', titleSize)
       .style('font-weight', 'bold')
       .text('Rating Stability');
 
     // Bubble size explanation
     legend.append('text')
-      .attr('font-size', 18)
+      .attr('font-size', subtitleSize)
       .attr('y', 18)
       .style('fill', '#666')
       .text('Bubble Size:');
 
     legend.append('text')
-      .attr('font-size', 16)
+      .attr('font-size', itemSize)
       .attr('y', 35)
       .style('fill', '#999')
       .text('● Larger = More Stable');
 
     legend.append('text')
-      .attr('font-size', 16)
+      .attr('font-size', itemSize)
       .attr('y', 52)
       .style('fill', '#999')
       .text('● Smaller = Less Stable');
 
     // Color legend
     legend.append('text')
-      .attr('font-size', 18)
+      .attr('font-size', subtitleSize)
       .attr('y', 75)
       .style('fill', '#666')
       .text('Color (Variance):');
@@ -346,7 +358,7 @@ export class ScatterChart {
       legend.append('text')
         .attr('x', 18)
         .attr('y', 85 + i * 18)
-        .attr('font-size', 16)
+        .attr('font-size', itemSize)
         .attr('dominant-baseline', 'middle')
         .text(labels[i]);
     });

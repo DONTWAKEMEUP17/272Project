@@ -4,36 +4,20 @@
     
     <!-- Genre Selection -->
     <div class="controls">
-      <div class="search-box">
-        <input 
-          v-model="searchGenre" 
-          type="text" 
-          placeholder="Search or enter genre names (separate with commas)"
-          @keyup.enter="handleGenreFilter"
-          class="search-input"
-        />
-        <button @click="handleGenreFilter" class="search-btn">Filter</button>
-        <button @click="clearFilter" class="clear-btn">Show All</button>
-      </div>
-      
-      <div v-if="availableGenres.length > 0" class="suggested-genres">
-        <span class="label">Popular Genres:</span>
+      <div class="all-genres">
+        <span class="label">All Genres:</span>
         <button 
-          v-for="genre in availableGenres.slice(0, 10)" 
+          v-for="genre in availableGenres" 
           :key="genre"
-          @click="addGenreToSelection(genre)"
-          class="genre-tag"
+          @click="toggleGenreSelection(genre)"
+          :class="['genre-button', { selected: selectedGenres.includes(genre) }]"
         >
           {{ genre }}
         </button>
       </div>
       
-      <div v-if="selectedGenres.length > 0" class="selected-genres">
-        <span class="label">Selected:</span>
-        <div v-for="genre in selectedGenres" :key="genre" class="selected-tag">
-          {{ genre }}
-          <button @click="removeGenre(genre)">✕</button>
-        </div>
+      <div class="action-buttons">
+        <button @click="clearFilter" class="clear-btn">Clear All</button>
       </div>
     </div>
 
@@ -71,29 +55,13 @@ const searchGenre = ref('');
 const selectedGenres = ref([]);
 const availableGenres = ref([]);
 
-const handleGenreFilter = () => {
-  const input = searchGenre.value.trim();
-  if (input) {
-    const genres = input.split(',').map(g => g.trim()).filter(g => g);
-    selectedGenres.value = genres;
-    if (radarInstance) {
-      radarInstance.filterByGenres(genres);
-    }
-    searchGenre.value = '';
-  }
-};
-
-const addGenreToSelection = (genre) => {
-  if (!selectedGenres.value.includes(genre)) {
+const toggleGenreSelection = (genre) => {
+  if (selectedGenres.value.includes(genre)) {
+    selectedGenres.value = selectedGenres.value.filter(g => g !== genre);
+  } else {
     selectedGenres.value.push(genre);
-    if (radarInstance) {
-      radarInstance.filterByGenres(selectedGenres.value);
-    }
   }
-};
-
-const removeGenre = (genre) => {
-  selectedGenres.value = selectedGenres.value.filter(g => g !== genre);
+  
   if (radarInstance) {
     if (selectedGenres.value.length === 0) {
       radarInstance.filterByGenres(null);
@@ -241,6 +209,51 @@ defineExpose({
   opacity: 0.8;
 }
 
+.all-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  align-items: center;
+  margin-bottom: 0.3rem;
+}
+
+.label {
+  font-weight: bold;
+  color: #666;
+  margin-right: 0.3rem;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.genre-button {
+  padding: 0.3rem 0.6rem;
+  background: white;
+  border: 2px solid #ddd;
+  color: #333;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 0.3s;
+}
+
+.genre-button:hover {
+  border-color: #00D9FF;
+  color: #00D9FF;
+}
+
+.genre-button.selected {
+  background: #00D9FF;
+  border-color: #00D9FF;
+  color: #000;
+  font-weight: bold;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.3rem;
+  justify-content: flex-end;
+}
+
 .clear-btn {
   padding: 0.3rem 0.8rem;
   background: #999;
@@ -254,65 +267,6 @@ defineExpose({
 
 .clear-btn:hover {
   background: #666;
-}
-
-.suggested-genres {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.2rem;
-  margin-bottom: 0.2rem;
-}
-
-.label {
-  font-weight: bold;
-  color: #666;
-  margin-right: 0.2rem;
-  font-size: 0.8rem;
-}
-
-.genre-tag {
-  padding: 0.2rem 0.5rem;
-  background: white;
-  border: 1px solid #00D9FF;
-  color: #00D9FF;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 0.75rem;
-  transition: all 0.3s;
-}
-
-.genre-tag:hover {
-  background: #00D9FF;
-  color: white;
-}
-
-.selected-genres {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.3rem;
-}
-
-.selected-tag {
-  display: flex;
-  align-items: center;
-  gap: 0.2rem;
-  padding: 0.2rem 0.5rem;
-  background: #00D9FF;
-  color: #000;
-  border-radius: 20px;
-  font-weight: bold;
-  font-size: 0.8rem;
-}
-
-.selected-tag button {
-  background: none;
-  border: none;
-  color: #000;
-  cursor: pointer;
-  font-weight: bold;
-  padding: 0;
 }
 
 .graph-canvas {

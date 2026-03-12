@@ -71,7 +71,7 @@ const steps = [
   {
     id: 'step-1',
     title: '🎬 Are rating patterns consistent across genres and platforms?',
-    body: `(*Hover over the cells, you can see more details.) The heatmap is your first clue. We use percentiles instead of raw ratings to normalize across platforms that use different rating scales. We can see that <span class="interactive-text" data-highlight-type="genre" data-highlight-value="Thriller,Avant Garde,Boys Love,Crime,Family,Sports">different communities do have different genre preferences</span>. The answer to our central question is right here: no, rating patterns are NOT consistent.`,
+    body: `(*Hover over the cells, you can see more details.) The heatmap is your first clue. We use percentiles instead of raw ratings to normalize across platforms that use different rating scales. We can see that <span class="interactive-text" data-highlight-type="genre" data-highlight-value="Thriller,Avant Garde,Boys Love,Crime,Family,Sci-Fi, History, Sport">different communities do have different genre preferences</span>. The answer to our central question is right here: no, rating patterns are NOT consistent.`,
     bodyHtml: true
   },
   {

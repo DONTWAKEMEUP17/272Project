@@ -55,37 +55,37 @@ export const getResponsiveChartConfig = (windowWidth = typeof window !== 'undefi
   if (windowWidth >= 1400) {
     // 大屏桌面：最大化
     config = {
-      width: Math.min(windowWidth - 100, 1600),
-      height: 800,
-      margin: { top: 100, right: 40, bottom: 120, left: 120 }
+      width: Math.min(windowWidth - 100, 660),
+      height: 330,
+      margin: { top: 44, right: 22, bottom: 55, left: 67 }
     };
   } else if (windowWidth >= 1000) {
     // 标准桌面
     config = {
-      width: Math.min(windowWidth - 100, 1400),
-      height: 750,
-      margin: { top: 110, right: 30, bottom: 110, left: 110 }
+      width: Math.min(windowWidth - 100, 579),
+      height: 303,
+      margin: { top: 50, right: 16, bottom: 50, left: 61 }
     };
   } else if (windowWidth >= 768) {
     // 平板
     config = {
-      width: Math.min(windowWidth - 60, 900),
-      height: 600,
-      margin: { top: 80, right: 25, bottom: 100, left: 90 }
+      width: Math.min(windowWidth - 60, 413),
+      height: 287,
+      margin: { top: 38, right: 14, bottom: 47, left: 50 }
     };
   } else if (windowWidth >= 480) {
     // 手机 (Medium)
     config = {
-      width: Math.min(windowWidth - 40, 500),
-      height: 500,
-      margin: { top: 60, right: 20, bottom: 85, left: 70 }
+      width: Math.min(windowWidth - 40, 231),
+      height: 248,
+      margin: { top: 30, right: 11, bottom: 41, left: 38 }
     };
   } else {
     // 超小屏
     config = {
-      width: Math.min(windowWidth - 30, 400),
-      height: 400,
-      margin: { top: 50, right: 15, bottom: 75, left: 60 }
+      width: Math.min(windowWidth - 30, 193),
+      height: 209,
+      margin: { top: 24, right: 8, bottom: 36, left: 33 }
     };
   }
   
@@ -107,33 +107,33 @@ export const getContainerResponsiveChartConfig = (containerWidth, containerHeigh
 
   if (safeWidth >= 1400) {
     config = {
-      width: Math.min(safeWidth, 1600),
-      height: 800,
-      margin: { top: 100, right: 40, bottom: 120, left: 120 }
+      width: Math.min(safeWidth, 660),
+      height: 330,
+      margin: { top: 44, right: 22, bottom: 55, left: 67 }
     };
   } else if (safeWidth >= 1000) {
     config = {
-      width: Math.min(safeWidth, 1400),
-      height: 720,
-      margin: { top: 90, right: 30, bottom: 100, left: 105 }
+      width: Math.min(safeWidth, 579),
+      height: 303,
+      margin: { top: 44, right: 16, bottom: 47, left: 58 }
     };
   } else if (safeWidth >= 768) {
     config = {
       width: safeWidth,
-      height: 620,
-      margin: { top: 70, right: 24, bottom: 90, left: 85 }
+      height: 287,
+      margin: { top: 36, right: 13, bottom: 44, left: 47 }
     };
   } else if (safeWidth >= 480) {
     config = {
       width: safeWidth,
-      height: 520,
-      margin: { top: 56, right: 18, bottom: 80, left: 70 }
+      height: 248,
+      margin: { top: 28, right: 10, bottom: 38, left: 38 }
     };
   } else {
     config = {
       width: safeWidth,
-      height: 420,
-      margin: { top: 44, right: 14, bottom: 72, left: 58 }
+      height: 209,
+      margin: { top: 22, right: 7, bottom: 33, left: 31 }
     };
   }
 

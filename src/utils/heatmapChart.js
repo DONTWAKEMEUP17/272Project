@@ -46,11 +46,14 @@ export class HeatmapChart {
       .attr('width', '100%')
       .attr('height', '100%');
 
-    this.innerWidth = width - margin.left - margin.right;
-    this.innerHeight = height - margin.top - margin.bottom;
+    this.innerWidth = (width - margin.left - margin.right) * 0.8;
+    this.innerHeight = (height - margin.top - margin.bottom) * 0.8;
+
+    // 计算缩小后的偏移量，让图表居中靠右
+    const xOffset = (width - margin.left - margin.right) * 0.1;
 
     this.g = this.svg.append('g')
-      .attr('transform', `translate(${margin.left}, ${margin.top})`);
+      .attr('transform', `translate(${margin.left + xOffset}, ${margin.top})`);
 
     // Setup scales
     this.genres = [...new Set(data.map(d => d.genre))].sort();
@@ -294,7 +297,7 @@ export class HeatmapChart {
       .attr('transform', `translate(0, ${this.innerHeight})`)
       .call(d3.axisBottom(this.xScale))
       .selectAll('text')
-      .attr('font-size', 24)
+      .attr('font-size', 14)
       .attr('fill', '#000')
       .attr('transform', 'rotate(-60)')
       .style('text-anchor', 'end')
@@ -305,15 +308,15 @@ export class HeatmapChart {
       .attr('class', 'y-axis')
       .call(d3.axisLeft(this.yScale))
       .selectAll('text')
-      .attr('font-size', 26)
+      .attr('font-size', 16)
       .attr('fill', '#000');
 
     // Color legend - horizontal layout at top
-    const legendHeight = 50;
+    const legendHeight = 45;
     const legendData = d3.range(0, 101, 10);
-    const legendRectSize = 20;
-    const legendSpacing = 8;
-    const totalLegendWidth = legendData.length * (legendRectSize + legendSpacing) + 40;
+    const legendRectSize = 16; // 从 20 缩小到 16
+    const legendSpacing = 6;   // 从 8 缩小到 6
+    const totalLegendWidth = legendData.length * (legendRectSize + legendSpacing) + 35;
     const legendX = (this.innerWidth - totalLegendWidth) / 2;
 
     const legend = this.g.append('g')
@@ -325,7 +328,7 @@ export class HeatmapChart {
       .attr('x', -10)
       .attr('y', -15)
       .attr('width', totalLegendWidth + 20)
-      .attr('height', 90)
+      .attr('height', 85)
       .attr('fill', 'rgba(13, 10, 37, 0.6)')
       .attr('stroke', '#00D9FF')
       .attr('stroke-width', 1)
@@ -335,7 +338,7 @@ export class HeatmapChart {
     legend.append('text')
       .attr('x', 10)
       .attr('y', 0)
-      .attr('font-size', 18)
+      .attr('font-size', 16)
       .attr('font-weight', 'bold')
       .attr('fill', '#e0e0ff')
       .text('Percentile:');
@@ -356,9 +359,9 @@ export class HeatmapChart {
 
     legendItems.append('text')
       .attr('x', legendRectSize / 2)
-      .attr('y', legendRectSize + 18)
+      .attr('y', legendRectSize + 16)
       .attr('text-anchor', 'middle')
-      .attr('font-size', 22)
+      .attr('font-size', 18)
       .attr('fill', '#a0a0ff')
       .text(d => d);
   }

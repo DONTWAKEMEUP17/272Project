@@ -85,17 +85,20 @@ export class HeatmapChart {
 
     const { highlightGenre } = stepState;
 
+    // 支持单个流派或多个流派数组
+    const genresToHighlight = Array.isArray(highlightGenre) ? highlightGenre : (highlightGenre ? [highlightGenre] : []);
+
     // Update rect colors and emphasis based on highlight
     this.g.selectAll('rect.heatmap-cell')
       .attr('opacity', d => {
-        if (!highlightGenre) return 1;
-        return d.genre === highlightGenre ? 1 : 0.3;
+        if (genresToHighlight.length === 0) return 1;
+        return genresToHighlight.includes(d.genre) ? 1 : 0.3;
       })
       .attr('stroke-width', d => {
-        return d.genre === highlightGenre ? 2 : 1;
+        return genresToHighlight.includes(d.genre) ? 2 : 1;
       })
       .attr('stroke', d => {
-        return d.genre === highlightGenre ? '#000' : '#fff';
+        return genresToHighlight.includes(d.genre) ? '#000' : '#fff';
       });
   }
 

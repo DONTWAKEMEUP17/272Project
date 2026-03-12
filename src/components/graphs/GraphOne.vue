@@ -6,7 +6,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watch, onBeforeUnmount, defineExpose } from 'vue';
+import { onMounted, ref, watch, onBeforeUnmount, defineExpose, inject } from 'vue';
 import { useSharedData } from '../../composables/useSharedData';
 import { useResponsiveConfig } from '../../composables/useResponsiveConfig';
 import { buildGenreHeatmapData } from '../../utils/dataLoader';
@@ -30,6 +30,7 @@ const props = defineProps({
 const chartRef = ref(null);
 const { loadData } = useSharedData();
 const { chartConfig } = useResponsiveConfig();
+const highlightState = inject('highlightState', null);
 let heatmapInstance = null;
 let rawHeatmapData = null;
 
@@ -61,6 +62,25 @@ watch(() => props.stepState, (newState) => {
 watch(() => props.sharedState, (newState) => {
   if (heatmapInstance && props.stepState) {
     heatmapInstance.update(props.stepState, newState || {});
+  }
+}, { deep: true });
+
+// Watch for highlight state changes from interactive text
+watch(() => highlightState?.value, (newHighlightState) => {
+  if (!heatmapInstance) return;
+  
+  // 如果是高亮 genre 类型，更新图表
+  if (newHighlightState?.type === 'genre' && newHighlightState?.value) {
+    heatmapInstance.update(
+      { highlightGenre: newHighlightState.value },
+      props.sharedState || {}
+    );
+  } else {
+    // 没有高亮时，恢复默认状态
+    heatmapInstance.update(
+      { highlightGenre: null },
+      props.sharedState || {}
+    );
   }
 }, { deep: true });
 

@@ -91,3 +91,56 @@ export const getResponsiveChartConfig = (windowWidth = typeof window !== 'undefi
   
   return config;
 };
+
+/**
+ * 获取基于容器尺寸的响应式图表配置。
+ * 适用于分屏/侧边栏布局，避免只按 window.innerWidth 计算导致图表拥挤。
+ * @param {number} containerWidth - 图表容器可用宽度
+ * @param {number} containerHeight - 图表容器可用高度
+ * @returns {Object} 响应式图表配置
+ */
+export const getContainerResponsiveChartConfig = (containerWidth, containerHeight = 0) => {
+  const safeWidth = Math.max(320, containerWidth || (typeof window !== 'undefined' ? window.innerWidth : 1600));
+  const safeHeight = Math.max(0, containerHeight || 0);
+
+  let config;
+
+  if (safeWidth >= 1400) {
+    config = {
+      width: Math.min(safeWidth, 1600),
+      height: 800,
+      margin: { top: 100, right: 40, bottom: 120, left: 120 }
+    };
+  } else if (safeWidth >= 1000) {
+    config = {
+      width: Math.min(safeWidth, 1400),
+      height: 720,
+      margin: { top: 90, right: 30, bottom: 100, left: 105 }
+    };
+  } else if (safeWidth >= 768) {
+    config = {
+      width: safeWidth,
+      height: 620,
+      margin: { top: 70, right: 24, bottom: 90, left: 85 }
+    };
+  } else if (safeWidth >= 480) {
+    config = {
+      width: safeWidth,
+      height: 520,
+      margin: { top: 56, right: 18, bottom: 80, left: 70 }
+    };
+  } else {
+    config = {
+      width: safeWidth,
+      height: 420,
+      margin: { top: 44, right: 14, bottom: 72, left: 58 }
+    };
+  }
+
+  if (safeHeight > 0) {
+    const boundedHeight = Math.max(360, Math.min(config.height, safeHeight - 16));
+    config.height = boundedHeight;
+  }
+
+  return config;
+};

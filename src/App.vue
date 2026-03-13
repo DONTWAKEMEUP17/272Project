@@ -83,7 +83,7 @@ const steps = [
   {
     id: 'step-2',
     title: '📊 How do individual anime titles distribute within each platform\'s rating ecosystem?',
-    body: ` Now let's zoom in. Each dot is a real anime. Red, Blue, Green —each color represents a platform. Dot size indicates vote count. You may notice that the MyAnimeList swarm contains many larger circles, while Bangumi and IMDb tend to have smaller ones. \n Hover over a title you recognize. See how it bounces between ranks depending on the community? 
+    body: ` Now let's zoom in. Each dot is a real anime. Red, Blue, Green —each color represents a platform. Dot size indicates vote count. You may notice that the MyAnimeList swarm contains many larger circles, while Bangumi and IMDb tend to have smaller ones. \n Hover over a title you recognize. See how it bounces between rating depending on the community? 
     \n Key insight1: <span class="interactive-text" data-highlight-type="anime" data-highlight-value="Shingeki no Kyojin Season 3 Part 2">individual titles don't occupy the same "rank space" across communities</span>. A hit on MyAnimeList might be middling on IMDb.  
     \n Key insight2: <span class="interactive-text" data-highlight-type="anime" data-highlight-value="Kimetsu no Yaiba">popularity doesn't guarantee agreement</span>. Some of the most popular anime are rated very differently across platforms, showing that even widely watched titles can be divisive. 
     \n Key insight3: <span class="interactive-text" data-highlight-type="anime" data-highlight-value="Gin no Saji 2nd Season">Community size shapes ratings, but audience preference shapes participation.</span> While MAL often shows the highest participation overall, there are still individual titles where IMDb collects even more votes than MAL. Some anime thrive within specialized fandom communities, while others spread more widely across general media audiences.
@@ -142,7 +142,7 @@ A title that ranks near the top on one platform may appear much lower on another
 
 Why?
 
-Because rankings are relative. Even tiny score differences can shift a title up or down once thousands of other anime compete for position.
+Because rankings are relative. Even tiny score differences can shift a title up or down.
 
 So while communities agree on quality, they still disagree on priority.
 
@@ -194,9 +194,13 @@ But they disagree on priority.
 
 They disagree on which genres matter, which brings different titles into prominence.
 
-They disagree on the relative importance of thousands of anime competing for top positions.
+They disagree on the relative importance of hundreds of anime competing for top positions.
 
 The anime world doesn't have one ranking. Every community builds its own.
+
+Popular genres form common Action, Comedy, and Drama resonate across all platforms. 
+
+But at the edges, each community nurtures its own niche tastes and specialized preferences.
 
 The score is shared. The hierarchy is not.
 

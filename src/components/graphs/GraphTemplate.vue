@@ -1,5 +1,5 @@
 <template>
-  <article class="graph-card step">
+  <article class="graph-card">
     <h2 class="graph-title">{{ title }}</h2>
     <div ref="chartRef" class="graph-canvas" />
   </article>

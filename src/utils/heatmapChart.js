@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import { getContainerResponsiveChartConfig, globalConfig } from '../config/globalConfig';
 
 /**
  * Heatmap visualization following Component Contract
@@ -29,6 +30,8 @@ export class HeatmapChart {
   init(container, data, sharedState) {
     this.container = container;
     this.dataset = data;
+
+    this.config = getContainerResponsiveChartConfig(container?.clientWidth, container?.clientHeight);
 
     const width = this.config.width;
     const height = this.config.height;
@@ -61,11 +64,11 @@ export class HeatmapChart {
     this.yScale = d3.scaleBand()
       .domain(this.platforms)
       .range([0, this.innerHeight])
-      .padding(0.05);
+      .padding(0.3);
 
     this.colorScale = d3.scaleLinear()
       .domain([0, 50, 100])
-      .range(['#ef5350', '#fdd835', '#66bb6a'])
+      .range([globalConfig.cyberpunkPalette.heatmap.low, globalConfig.cyberpunkPalette.heatmap.mid, globalConfig.cyberpunkPalette.heatmap.high])
       .clamp(true);
 
     // Render
@@ -82,17 +85,20 @@ export class HeatmapChart {
 
     const { highlightGenre } = stepState;
 
+    // 支持单个流派或多个流派数组
+    const genresToHighlight = Array.isArray(highlightGenre) ? highlightGenre : (highlightGenre ? [highlightGenre] : []);
+
     // Update rect colors and emphasis based on highlight
     this.g.selectAll('rect.heatmap-cell')
       .attr('opacity', d => {
-        if (!highlightGenre) return 1;
-        return d.genre === highlightGenre ? 1 : 0.3;
+        if (genresToHighlight.length === 0) return 1;
+        return genresToHighlight.includes(d.genre) ? 1 : 0.3;
       })
       .attr('stroke-width', d => {
-        return d.genre === highlightGenre ? 2 : 1;
+        return genresToHighlight.includes(d.genre) ? 2 : 1;
       })
       .attr('stroke', d => {
-        return d.genre === highlightGenre ? '#000' : '#fff';
+        return genresToHighlight.includes(d.genre) ? '#000' : '#fff';
       });
   }
 
@@ -101,12 +107,43 @@ export class HeatmapChart {
    */
   resize() {
     if (!this.svg || !this.container) return;
-    
-    const newWidth = this.container.clientWidth || this.config.width;
-    const newHeight = this.container.clientHeight || this.config.height;
 
+    // 基于实际容器尺寸进行响应式计算（兼容分屏场景）
+    const newConfig = getContainerResponsiveChartConfig(this.container?.clientWidth, this.container?.clientHeight);
+
+    // 更新内部配置
+    this.config = newConfig;
+    
+    const width = newConfig.width;
+    const height = newConfig.height;
+    const margin = newConfig.margin;
+
+    // 更新 SVG 的 viewBox 和尺寸
     this.svg
-      .attr('viewBox', `0 0 ${newWidth} ${newHeight}`);
+      .attr('viewBox', `0 0 ${width} ${height}`)
+      .attr('width', '100%')
+      .attr('height', '100%');
+
+    // 重新计算内部宽度和高度
+    this.innerWidth = width - margin.left - margin.right;
+    this.innerHeight = height - margin.top - margin.bottom;
+
+    // 更新 g 元素的位置
+    this.g.attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+    // 重新设置 scales
+    this.xScale = d3.scaleBand()
+      .domain(this.genres)
+      .range([0, this.innerWidth])
+      .padding(0.05);
+
+    this.yScale = d3.scaleBand()
+      .domain(this.platforms)
+      .range([0, this.innerHeight])
+      .padding(0.05);
+
+    // 重新渲染图表内容（使用相同的数据）
+    this.render();
   }
 
   /**
@@ -148,7 +185,7 @@ export class HeatmapChart {
         .style('background', 'rgba(0, 0, 0, 0.8)')
         .style('color', '#fff')
         .style('border-radius', '4px')
-        .style('font-size', '12px')
+        .style('font-size', '24px')
         .style('pointer-events', 'none')
         .style('display', 'none')
         .style('z-index', '1000')
@@ -177,17 +214,68 @@ export class HeatmapChart {
         
         // Show tooltip
         const tooltipText = `${d.genre} - ${this.platformLabels[d.platform]}\nAvg Percentile: ${d.value.toFixed(1)}\nTitles: ${d.count || 'N/A'}`;
+        const containerRect = this.container.getBoundingClientRect();
         tooltip
           .style('display', 'block')
-          .html(tooltipText.replace(/\n/g, '<br/>'))
-          .style('left', (event.pageX + 10) + 'px')
-          .style('top', (event.pageY + 10) + 'px');
+          .html(tooltipText.replace(/\n/g, '<br/>'));
+        
+        // Calculate tooltip position with boundary detection
+        setTimeout(() => {
+          const tooltipNode = tooltip.node();
+          const tooltipRect = tooltipNode.getBoundingClientRect();
+          const tooltipWidth = tooltipRect.width;
+          const tooltipHeight = tooltipRect.height;
+          
+          let left = event.clientX - containerRect.left + 10;
+          let top = event.clientY - containerRect.top + 10;
+          
+          // Check right boundary
+          if (left + tooltipWidth > containerRect.width) {
+            left = event.clientX - containerRect.left - tooltipWidth - 10;
+          }
+          
+          // Check bottom boundary
+          if (top + tooltipHeight > containerRect.height) {
+            top = event.clientY - containerRect.top - tooltipHeight - 10;
+          }
+          
+          // Ensure minimum values
+          left = Math.max(0, left);
+          top = Math.max(0, top);
+          
+          tooltip
+            .style('left', left + 'px')
+            .style('top', top + 'px');
+        }, 0);
       })
       .on('mousemove', (event) => {
-        // Update tooltip position
+        // Update tooltip position with boundary detection
+        const containerRect = this.container.getBoundingClientRect();
+        const tooltipNode = tooltip.node();
+        const tooltipRect = tooltipNode.getBoundingClientRect();
+        const tooltipWidth = tooltipRect.width;
+        const tooltipHeight = tooltipRect.height;
+        
+        let left = event.clientX - containerRect.left + 10;
+        let top = event.clientY - containerRect.top + 10;
+        
+        // Check right boundary
+        if (left + tooltipWidth > containerRect.width) {
+          left = event.clientX - containerRect.left - tooltipWidth - 10;
+        }
+        
+        // Check bottom boundary
+        if (top + tooltipHeight > containerRect.height) {
+          top = event.clientY - containerRect.top - tooltipHeight - 10;
+        }
+        
+        // Ensure minimum values
+        left = Math.max(0, left);
+        top = Math.max(0, top);
+        
         tooltip
-          .style('left', (event.pageX + 10) + 'px')
-          .style('top', (event.pageY + 10) + 'px');
+          .style('left', left + 'px')
+          .style('top', top + 'px');
       })
       .on('mouseleave', function(event, d) {
         // Hover out: reset
@@ -206,7 +294,8 @@ export class HeatmapChart {
       .attr('transform', `translate(0, ${this.innerHeight})`)
       .call(d3.axisBottom(this.xScale))
       .selectAll('text')
-      .attr('font-size', 12)
+      .attr('font-size', 24)
+      .attr('fill', '#000')
       .attr('transform', 'rotate(-60)')
       .style('text-anchor', 'end')
       .style('dominant-baseline', 'middle');
@@ -216,29 +305,61 @@ export class HeatmapChart {
       .attr('class', 'y-axis')
       .call(d3.axisLeft(this.yScale))
       .selectAll('text')
-      .attr('font-size', 13);
+      .attr('font-size', 26)
+      .attr('fill', '#000');
 
-    // Color legend
-    const legendX = this.innerWidth + 20;
-    const legendHeight = 20;
+    // Color legend - horizontal layout at top
+    const legendHeight = 50;
     const legendData = d3.range(0, 101, 10);
+    const legendRectSize = 20;
+    const legendSpacing = 8;
+    const totalLegendWidth = legendData.length * (legendRectSize + legendSpacing) + 40;
+    const legendX = (this.innerWidth - totalLegendWidth) / 2;
 
     const legend = this.g.append('g')
       .attr('class', 'legend')
-      .attr('transform', `translate(${legendX}, 0)`);
+      .attr('transform', `translate(${legendX}, ${-legendHeight})`);
 
-    legend.selectAll('rect')
-      .data(legendData)
-      .join('rect')
-      .attr('y', (d, i) => i * (legendHeight / 10))
-      .attr('width', 15)
-      .attr('height', legendHeight / 10)
-      .attr('fill', d => this.colorScale(d));
+    // Legend background
+    legend.append('rect')
+      .attr('x', -10)
+      .attr('y', -15)
+      .attr('width', totalLegendWidth + 20)
+      .attr('height', 90)
+      .attr('fill', 'rgba(13, 10, 37, 0.6)')
+      .attr('stroke', '#00D9FF')
+      .attr('stroke-width', 1)
+      .attr('rx', 5);
 
+    // Legend title - positioned above color boxes
     legend.append('text')
-      .attr('x', 0)
-      .attr('y', -5)
-      .attr('font-size', 10)
-      .text('Percentile');
+      .attr('x', 10)
+      .attr('y', 0)
+      .attr('font-size', 18)
+      .attr('font-weight', 'bold')
+      .attr('fill', '#e0e0ff')
+      .text('Percentile:');
+
+    // Legend color boxes and labels
+    const legendItems = legend.selectAll('g.legend-item')
+      .data(legendData)
+      .join('g')
+      .attr('class', 'legend-item')
+      .attr('transform', (d, i) => `translate(${10 + i * (legendRectSize + legendSpacing)}, 10)`);
+
+    legendItems.append('rect')
+      .attr('width', legendRectSize)
+      .attr('height', legendRectSize)
+      .attr('fill', d => this.colorScale(d))
+      .attr('stroke', '#1a2050')
+      .attr('stroke-width', 1);
+
+    legendItems.append('text')
+      .attr('x', legendRectSize / 2)
+      .attr('y', legendRectSize + 18)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', 22)
+      .attr('fill', '#a0a0ff')
+      .text(d => d);
   }
 }

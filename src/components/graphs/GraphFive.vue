@@ -1,6 +1,20 @@
 <template>
   <article class="graph-card step">
     <h2 class="graph-title">{{ title }}</h2>
+    <div class="stats-panel" v-if="stats">
+      <div class="stat-item">
+        <span class="stat-label">Stable:</span>
+        <span class="stat-value stable">{{ stats.stable }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Moderate:</span>
+        <span class="stat-value moderate">{{ stats.moderate }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Divergent:</span>
+        <span class="stat-value divergent">{{ stats.divergent }}</span>
+      </div>
+    </div>
     <div ref="chartRef" class="graph-canvas" />
   </article>
 </template>
@@ -8,6 +22,7 @@
 <script setup>
 import { onMounted, ref, watch, onBeforeUnmount, defineExpose } from 'vue';
 import { useSharedData } from '../../composables/useSharedData';
+import { useResponsiveConfig } from '../../composables/useResponsiveConfig';
 import { ParallelCoordinateChart } from '../../utils/parallelCoordinateChart';
 
 const props = defineProps({
@@ -26,22 +41,39 @@ const props = defineProps({
 });
 
 const chartRef = ref(null);
-const { globalConfig, loadData } = useSharedData();
+const stats = ref(null);
+const { loadData } = useSharedData();
+const { chartConfig } = useResponsiveConfig();
 let parallelInstance = null;
+
+const updateStats = () => {
+  if (parallelInstance && parallelInstance.getDisagreementStats) {
+    stats.value = parallelInstance.getDisagreementStats();
+  }
+};
 
 // Initialize parallel coordinate on mount
 onMounted(async () => {
   const rawData = await loadData();
   
-  // Create and initialize parallel coordinate instance
-  parallelInstance = new ParallelCoordinateChart(globalConfig.chart);
+  // Create and initialize parallel coordinate instance with responsive config
+  parallelInstance = new ParallelCoordinateChart(chartConfig.value);
   parallelInstance.init(chartRef.value, rawData, props.sharedState || {});
+  updateStats();
 });
+
+// Watch for chart config changes (window resize) and update visualization
+watch(chartConfig, (newConfig) => {
+  if (parallelInstance) {
+    parallelInstance.resize();
+  }
+}, { deep: true });
 
 // Watch for step state changes and update visualization
 watch(() => props.stepState, (newState) => {
   if (parallelInstance && newState) {
     parallelInstance.update(newState, props.sharedState || {});
+    updateStats();
   }
 }, { deep: true });
 
@@ -49,23 +81,12 @@ watch(() => props.stepState, (newState) => {
 watch(() => props.sharedState, (newState) => {
   if (parallelInstance && props.stepState) {
     parallelInstance.update(props.stepState, newState || {});
+    updateStats();
   }
 }, { deep: true });
 
-// Handle window resize
-const handleResize = () => {
-  if (parallelInstance) {
-    parallelInstance.resize();
-  }
-};
-
-onMounted(() => {
-  window.addEventListener('resize', handleResize);
-});
-
 // Cleanup on unmount
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', handleResize);
   if (parallelInstance) {
     parallelInstance.destroy();
   }
@@ -75,7 +96,7 @@ onBeforeUnmount(() => {
 defineExpose({
   init: (container, data, sharedState) => {
     if (!parallelInstance) {
-      parallelInstance = new ParallelCoordinateChart(globalConfig.chart);
+      parallelInstance = new ParallelCoordinateChart(chartConfig.value);
     }
     parallelInstance.init(container, data, sharedState);
   },
@@ -114,5 +135,52 @@ defineExpose({
 .graph-canvas {
   width: 100%;
   height: auto;
+}
+
+.stats-panel {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f8f8f8;
+  border-radius: 6px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stat-label {
+  font-weight: 600;
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.stat-value {
+  font-weight: 700;
+  font-size: 1.2rem;
+  min-width: 40px;
+  display: inline-block;
+}
+
+.stat-value.stable {
+  color: #4ade80;
+}
+
+.stat-value.moderate {
+  color: #facc15;
+}
+
+.stat-value.divergent {
+  color: #ff4757;
+}
+
+@media (max-width: 900px) {
+  .stats-panel {
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+  }
 }
 </style>

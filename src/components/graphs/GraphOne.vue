@@ -6,8 +6,9 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watch, onBeforeUnmount, defineExpose } from 'vue';
+import { onMounted, ref, watch, onBeforeUnmount, defineExpose, inject } from 'vue';
 import { useSharedData } from '../../composables/useSharedData';
+import { useResponsiveConfig } from '../../composables/useResponsiveConfig';
 import { buildGenreHeatmapData } from '../../utils/dataLoader';
 import { HeatmapChart } from '../../utils/heatmapChart';
 
@@ -27,7 +28,9 @@ const props = defineProps({
 });
 
 const chartRef = ref(null);
-const { globalConfig, loadData } = useSharedData();
+const { loadData } = useSharedData();
+const { chartConfig } = useResponsiveConfig();
+const highlightState = inject('highlightState', null);
 let heatmapInstance = null;
 let rawHeatmapData = null;
 
@@ -36,10 +39,17 @@ onMounted(async () => {
   const rawData = await loadData();
   rawHeatmapData = buildGenreHeatmapData(rawData);
   
-  // Create and initialize heatmap instance
-  heatmapInstance = new HeatmapChart(globalConfig.chart);
+  // Create and initialize heatmap instance with responsive config
+  heatmapInstance = new HeatmapChart(chartConfig.value);
   heatmapInstance.init(chartRef.value, rawHeatmapData, props.sharedState || {});
 });
+
+// Watch for chart config changes (window resize) and update visualization
+watch(chartConfig, (newConfig) => {
+  if (heatmapInstance) {
+    heatmapInstance.resize();
+  }
+}, { deep: true });
 
 // Watch for step state changes and update visualization
 watch(() => props.stepState, (newState) => {
@@ -55,20 +65,27 @@ watch(() => props.sharedState, (newState) => {
   }
 }, { deep: true });
 
-// Handle window resize
-const handleResize = () => {
-  if (heatmapInstance) {
-    heatmapInstance.resize();
+// Watch for highlight state changes from interactive text
+watch(() => highlightState?.value, (newHighlightState) => {
+  if (!heatmapInstance) return;
+  
+  // 如果是高亮 genre 类型，更新图表
+  if (newHighlightState?.type === 'genre' && newHighlightState?.value) {
+    heatmapInstance.update(
+      { highlightGenre: newHighlightState.value },
+      props.sharedState || {}
+    );
+  } else {
+    // 没有高亮时，恢复默认状态
+    heatmapInstance.update(
+      { highlightGenre: null },
+      props.sharedState || {}
+    );
   }
-};
-
-onMounted(() => {
-  window.addEventListener('resize', handleResize);
-});
+}, { deep: true });
 
 // Cleanup on unmount
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', handleResize);
   if (heatmapInstance) {
     heatmapInstance.destroy();
   }
@@ -116,6 +133,6 @@ defineExpose({
 
 .graph-canvas {
   width: 100%;
-  min-height: 500px;
+  min-height: clamp(360px, 62vh, 760px);
 }
 </style>

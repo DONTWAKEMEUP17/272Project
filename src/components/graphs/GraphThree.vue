@@ -1,6 +1,20 @@
 <template>
   <article class="graph-card step">
     <h2 class="graph-title">{{ title }}</h2>
+    
+    <!-- Stability Filter Buttons -->
+    <div class="filter-buttons">
+      <button 
+        v-for="option in stabilityOptions" 
+        :key="option.value"
+        class="filter-btn"
+        :class="{ active: selectedStability === option.value }"
+        @click="handleStabilityFilter(option.value)"
+      >
+        {{ option.label }}
+      </button>
+    </div>
+    
     <div ref="chartRef" class="graph-canvas" />
   </article>
 </template>
@@ -8,6 +22,7 @@
 <script setup>
 import { onMounted, ref, watch, onBeforeUnmount, defineExpose } from 'vue';
 import { useSharedData } from '../../composables/useSharedData';
+import { useResponsiveConfig } from '../../composables/useResponsiveConfig';
 import { ScatterChart } from '../../utils/scatterChart';
 
 const props = defineProps({
@@ -26,17 +41,41 @@ const props = defineProps({
 });
 
 const chartRef = ref(null);
-const { globalConfig, loadData } = useSharedData();
+const { loadData } = useSharedData();
+const { chartConfig } = useResponsiveConfig();
 let scatterInstance = null;
+
+const stabilityOptions = [
+  { value: null, label: 'All' },
+  { value: 'stable', label: 'Stable' },
+  { value: 'moderate', label: 'Moderate' },
+  { value: 'unstable', label: 'Unstable' }
+];
+
+const selectedStability = ref(null);
+
+const handleStabilityFilter = (value) => {
+  selectedStability.value = value;
+  if (scatterInstance) {
+    scatterInstance.setStabilityFilter(value);
+  }
+};
 
 // Initialize scatter on mount
 onMounted(async () => {
   const rawData = await loadData();
   
-  // Create and initialize scatter instance
-  scatterInstance = new ScatterChart(globalConfig.chart);
+  // Create and initialize scatter instance with responsive config
+  scatterInstance = new ScatterChart(chartConfig.value);
   scatterInstance.init(chartRef.value, rawData, props.sharedState || {});
 });
+
+// Watch for chart config changes (window resize) and update visualization
+watch(chartConfig, (newConfig) => {
+  if (scatterInstance) {
+    scatterInstance.resize();
+  }
+}, { deep: true });
 
 // Watch for step state changes and update visualization
 watch(() => props.stepState, (newState) => {
@@ -52,20 +91,8 @@ watch(() => props.sharedState, (newState) => {
   }
 }, { deep: true });
 
-// Handle window resize
-const handleResize = () => {
-  if (scatterInstance) {
-    scatterInstance.resize();
-  }
-};
-
-onMounted(() => {
-  window.addEventListener('resize', handleResize);
-});
-
 // Cleanup on unmount
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', handleResize);
   if (scatterInstance) {
     scatterInstance.destroy();
   }
@@ -93,6 +120,12 @@ defineExpose({
     if (scatterInstance) {
       scatterInstance.destroy();
     }
+  },
+  setStabilityFilter: (category) => {
+    selectedStability.value = category;
+    if (scatterInstance) {
+      scatterInstance.setStabilityFilter(category);
+    }
   }
 });
 </script>
@@ -111,8 +144,44 @@ defineExpose({
   color: #333;
 }
 
+.filter-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 0.5rem 1.5rem;
+  border: 2px solid #ddd;
+  background: white;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.filter-btn:hover {
+  border-color: #00D9FF;
+  color: #00D9FF;
+}
+
+.filter-btn.active {
+  background: #00D9FF;
+  color: #000;
+  border-color: #00D9FF;
+  font-weight: bold;
+}
+
 .graph-canvas {
   width: 100%;
-  min-height: 700px;
+  min-height: clamp(380px, 64vh, 780px);
+}
+
+@media (max-width: 900px) {
+  .graph-canvas {
+    min-height: clamp(340px, 56vh, 620px);
+  }
 }
 </style>

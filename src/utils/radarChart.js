@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import { getContainerResponsiveChartConfig, globalConfig } from '../config/globalConfig';
 
 /**
  * Radar Chart - Genre Bias Through Radar Profiles
@@ -23,7 +24,7 @@ export class RadarChart {
     this.config = {
       width: config.width || 1600,
       height: config.height || 700,
-      margin: config.margin || { top: 40, right: 40, bottom: 80, left: 120 }
+      margin: config.margin || { top: 20, right: 40, bottom: 100, left: 120 }
     };
     this.container = null;
     this.svg = null;
@@ -38,9 +39,9 @@ export class RadarChart {
     };
     
     this.platformColors = {
-      mal: '#2563eb',   // blue
-      imdb: '#f59e0b',  // amber
-      bgm: '#8b5cf6'    // violet
+      mal: globalConfig.cyberpunkPalette.platform.mal,
+      imdb: globalConfig.cyberpunkPalette.platform.imdb,
+      bgm: globalConfig.cyberpunkPalette.platform.bgm
     };
     
     this.tooltip = null;
@@ -60,6 +61,8 @@ export class RadarChart {
     
     // Aggregate data by genre
     this.dataset = this.aggregateByGenre(rawData);
+
+    this.config = getContainerResponsiveChartConfig(container?.clientWidth, container?.clientHeight);
 
     const width = this.config.width;
     const height = this.config.height;
@@ -173,7 +176,7 @@ export class RadarChart {
         .style('background', 'rgba(0, 0, 0, 0.9)')
         .style('color', '#fff')
         .style('border-radius', '4px')
-        .style('font-size', '12px')
+        .style('font-size', '24px')
         .style('pointer-events', 'none')
         .style('display', 'none')
         .style('z-index', '1000')
@@ -192,8 +195,8 @@ export class RadarChart {
     // Clear previous content
     this.g.selectAll('.radar-group').remove();
 
-    const radarSize = 120; // Size of each radar circle
-    const padding = 40;    // Padding between radars
+    const radarSize = 180; // Size of each radar circle (increased for better visibility)
+    const padding = 50;    // Padding between radars
     const cols = Math.floor(this.innerWidth / (radarSize + padding));
     const rows = Math.ceil(dataToRender.length / cols);
 
@@ -233,9 +236,9 @@ export class RadarChart {
         .attr('cy', 0)
         .attr('r', r)
         .attr('fill', 'none')
-        .attr('stroke', '#e5e7eb')
-        .attr('stroke-width', 0.5)
-        .attr('opacity', 0.5);
+        .attr('stroke', globalConfig.cyberpunkPalette.backgrounds.grid)
+        .attr('stroke-width', 1)
+        .attr('opacity', 0.6);
     }
 
     // Draw axes
@@ -250,8 +253,8 @@ export class RadarChart {
         .attr('y1', 0)
         .attr('x2', x)
         .attr('y2', y)
-        .attr('stroke', '#e5e7eb')
-        .attr('stroke-width', 0.5);
+        .attr('stroke', globalConfig.cyberpunkPalette.backgrounds.grid)
+        .attr('stroke-width', 1);
 
       // Axis label
       const labelDist = radius + 15;
@@ -263,7 +266,7 @@ export class RadarChart {
         .attr('y', labelY)
         .attr('text-anchor', 'middle')
         .attr('dominant-baseline', 'middle')
-        .attr('font-size', 9)
+        .attr('font-size', 18)
         .style('font-weight', 'bold')
         .style('fill', this.platformColors[axis])
         .text(axis.toUpperCase());
@@ -287,8 +290,8 @@ export class RadarChart {
     group.append('path')
       .datum(pathData)
       .attr('d', lineGenerator)
-      .attr('fill', 'rgba(100, 150, 200, 0.2)')
-      .attr('stroke', '#1f2937')
+      .attr('fill', `${globalConfig.cyberpunkPalette.accent}22`)
+      .attr('stroke', globalConfig.cyberpunkPalette.accent)
       .attr('stroke-width', 2)
       .style('cursor', 'pointer')
       .on('mouseenter', (event, d) => {
@@ -315,21 +318,23 @@ export class RadarChart {
 
     // Genre label at bottom
     group.append('text')
+      .attr('class', 'radar-genre-label')
       .attr('x', 0)
       .attr('y', radius + 30)
       .attr('text-anchor', 'middle')
-      .attr('font-size', 10)
+      .attr('font-size', 20)
       .style('font-weight', 'bold')
-      .style('fill', '#1f2937')
+      .style('fill', '#7c3aed')
       .text(genreData.genre);
 
     // Count label
     group.append('text')
+      .attr('class', 'radar-count-label')
       .attr('x', 0)
       .attr('y', radius + 42)
       .attr('text-anchor', 'middle')
-      .attr('font-size', 8)
-      .style('fill', '#6b7280')
+      .attr('font-size', 16)
+      .style('fill', globalConfig.cyberpunkPalette.text.secondary)
       .text(`(${genreData.count} anime)`);
   }
 
@@ -337,14 +342,9 @@ export class RadarChart {
    * Highlight a specific genre radar
    */
   highlightRadar(genreName) {
-    this.g.selectAll('.radar-group').attr('opacity', d => {
-      // Note: d is undefined in this context, need to fix - check if it's the radar-group element
-      return 0.3;
-    });
-
-    // Instead, highlight by finding the radar containing the genre
+    // Highlight the selected genre, dim others
     this.g.selectAll('.radar-group').each(function(d, i) {
-      const text = d3.select(this).select('text:last-of-type');
+      const text = d3.select(this).select('.radar-genre-label');
       if (text.text() === genreName) {
         d3.select(this).attr('opacity', 1);
       } else {
@@ -377,16 +377,44 @@ export class RadarChart {
       <br/>IMDb: ${genreData.imdb_iqr.toFixed(1)}
       <br/>Bangumi: ${genreData.bgm_iqr.toFixed(1)}
       <br/>
-      <span style="font-size: 11px; opacity: 0.8;">
+      <span style="font-size: 22px; opacity: 0.8;">
         Anime count: ${genreData.count}
       </span>
     `;
 
+    const containerRect = this.container.getBoundingClientRect();
     this.tooltip
       .style('display', 'block')
-      .html(tooltipText)
-      .style('left', (event.pageX + 10) + 'px')
-      .style('top', (event.pageY + 10) + 'px');
+      .html(tooltipText);
+    
+    // Calculate position with boundary detection
+    setTimeout(() => {
+      const tooltipNode = this.tooltip.node();
+      const tooltipRect = tooltipNode.getBoundingClientRect();
+      const tooltipWidth = tooltipRect.width;
+      const tooltipHeight = tooltipRect.height;
+      
+      let left = event.clientX - containerRect.left + 50;
+      let top = event.clientY - containerRect.top + 85;
+      
+      // Check right boundary
+      if (left + tooltipWidth > containerRect.width) {
+        left = event.clientX - containerRect.left - tooltipWidth - 20;
+      }
+      
+      // Check bottom boundary
+      if (top + tooltipHeight > containerRect.height) {
+        top = event.clientY - containerRect.top - tooltipHeight - 20;
+      }
+      
+      // Ensure minimum values
+      left = Math.max(0, left);
+      top = Math.max(0, top);
+      
+      this.tooltip
+        .style('left', left + 'px')
+        .style('top', top + 'px');
+    }, 0);
   }
 
   /**
@@ -423,11 +451,51 @@ export class RadarChart {
   resize() {
     if (!this.svg || !this.container) return;
 
-    const width = this.container.clientWidth || this.config.width;
-    const height = this.container.clientHeight || this.config.height;
+    // 基于实际容器尺寸进行响应式计算（兼容分屏场景）
+    const newConfig = getContainerResponsiveChartConfig(this.container?.clientWidth, this.container?.clientHeight);
 
+    // 更新内部配置
+    this.config = newConfig;
+    
+    const width = newConfig.width;
+    const height = newConfig.height;
+    const margin = newConfig.margin;
+
+    // 更新 SVG 的 viewBox 和尺寸
     this.svg
-      .attr('viewBox', `0 0 ${width} ${height}`);
+      .attr('viewBox', `0 0 ${width} ${height}`)
+      .attr('width', '100%')
+      .attr('height', '100%');
+
+    // 重新计算内部宽度和高度
+    this.innerWidth = width - margin.left - margin.right;
+    this.innerHeight = height - margin.top - margin.bottom;
+
+    // 更新 g 元素的位置
+    this.g.attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+    // 重新渲染图表内容（使用相同的数据）
+    this.renderRadarGallery(this.dataset);
+  }
+
+  /**
+   * Filter radar gallery by selected genres
+   * Displays only the selected genres with enlarged size for better comparison
+   */
+  filterByGenres(selectedGenres) {
+    if (!this.g || !this.dataset) return;
+
+    let dataToRender = this.dataset;
+    
+    // Filter by selected genres if provided
+    if (selectedGenres && selectedGenres.length > 0) {
+      dataToRender = this.dataset.filter(d => 
+        selectedGenres.includes(d.genre)
+      );
+    }
+    
+    // Re-render with filtered data
+    this.renderRadarGallery(dataToRender);
   }
 
   /**

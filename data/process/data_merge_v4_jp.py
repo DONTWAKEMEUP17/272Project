@@ -27,9 +27,9 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 # ============ 1. 读取数据 ============
 def load_data():
     """读取三个平台的数据"""
-    bangumi = pd.read_csv(os.path.join(SCRAPE_DIR, 'bangumi', 'bangumi.csv'))
-    mal = pd.read_csv(os.path.join(SCRAPE_DIR, 'MAL', 'mal_top_tv_2000plus_200_jp.csv'))
-    imdb = pd.read_csv(os.path.join(SCRAPE_DIR, 'imdb', 'imdb_top200_popularity+rating.csv'))
+    bangumi = pd.read_csv(os.path.join(SCRAPE_DIR, 'bangumi', 'bangumi_tv_jp_rank_2000plus.csv'))
+    mal = pd.read_csv(os.path.join(SCRAPE_DIR, 'MAL', 'mal_top_tv_2000plus_400_jp.csv'))
+    imdb = pd.read_csv(os.path.join(SCRAPE_DIR, 'imdb', 'imdb_popularity+rating.csv'))
     
     print("=" * 70)
     print("原始数据信息:")

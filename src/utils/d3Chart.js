@@ -1,4 +1,4 @@
-import * as d3 from 'd3';
+import * as d3 from 'd3';\nimport { globalConfig } from '../config/globalConfig';
 
 export function drawBarChart(container, dataset, config) {
   if (!container) {
@@ -42,13 +42,15 @@ export function drawBarChart(container, dataset, config) {
     .attr('y', (d) => y(d.value))
     .attr('width', x.bandwidth())
     .attr('height', (d) => innerHeight - y(d.value))
-    .attr('fill', '#3b82f6');
+    .attr('fill', globalConfig.cyberpunkPalette.accent)
+    .attr('stroke', globalConfig.cyberpunkPalette.primary)
+    .attr('stroke-width', 2);
 
   g.append('g')
     .attr('transform', `translate(0, ${innerHeight})`)
     .call(d3.axisBottom(x).tickValues(x.domain().filter((_, i) => i % 2 === 0)))
     .selectAll('text')
-    .attr('font-size', 10)
+    .attr('font-size', 20)
     .attr('transform', 'rotate(-25)')
     .style('text-anchor', 'end');
 
@@ -90,7 +92,7 @@ export function drawHeatmap(container, dataset, config) {
 
   const color = d3.scaleLinear()
     .domain([0, 50, 100])
-    .range(['#ef5350', '#fdd835', '#66bb6a'])
+    .range([globalConfig.cyberpunkPalette.heatmap.low, globalConfig.cyberpunkPalette.heatmap.mid, globalConfig.cyberpunkPalette.heatmap.high])
     .clamp(true);
 
   const g = svg.append('g')
@@ -113,7 +115,7 @@ export function drawHeatmap(container, dataset, config) {
     .attr('transform', `translate(0, ${innerHeight})`)
     .call(d3.axisBottom(x))
     .selectAll('text')
-    .attr('font-size', 12)
+    .attr('font-size', 24)
     .attr('transform', 'rotate(-60)')
     .style('text-anchor', 'end')
     .style('dominant-baseline', 'middle');
@@ -121,7 +123,7 @@ export function drawHeatmap(container, dataset, config) {
   g.append('g')
     .call(d3.axisLeft(y))
     .selectAll('text')
-    .attr('font-size', 13);
+    .attr('font-size', 26);
 
   const legendX = innerWidth + 20;
   const legendHeight = 20;
@@ -140,6 +142,6 @@ export function drawHeatmap(container, dataset, config) {
   g.append('text')
     .attr('x', legendX)
     .attr('y', -5)
-    .attr('font-size', 10)
+    .attr('font-size', 20)
     .text('Percentile');
 }

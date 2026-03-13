@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import { getContainerResponsiveChartConfig, globalConfig } from '../config/globalConfig';
 
 /**
  * Beeswarm Chart - Individual Anime Titles with Cross-Platform Comparison
@@ -16,7 +17,7 @@ export class BeeswarmChart {
     this.config = {
       width: config.width || 1600,
       height: config.height || 700,
-      margin: config.margin || { top: 40, right: 20, bottom: 80, left: 100 }
+      margin: config.margin || { top: 80, right: 180, bottom: 80, left: 100 }
     };
     this.container = null;
     this.svg = null;
@@ -31,9 +32,9 @@ export class BeeswarmChart {
     
     this.platformKeys = ['mal', 'imdb', 'bgm'];
     this.platformColors = {
-      mal: '#2563eb',   // blue
-      imdb: '#f59e0b',  // amber
-      bgm: '#8b5cf6'    // violet
+      mal: globalConfig.cyberpunkPalette.platform.mal,
+      imdb: globalConfig.cyberpunkPalette.platform.imdb,
+      bgm: globalConfig.cyberpunkPalette.platform.bgm
     };
     
     this.rScale = null;
@@ -64,6 +65,8 @@ export class BeeswarmChart {
       .filter(anime => {
         return anime.mal_score || anime.imdb_score || anime.bgm_score;
       });
+
+    this.config = getContainerResponsiveChartConfig(container?.clientWidth, container?.clientHeight);
 
     const width = this.config.width;
     const height = this.config.height;
@@ -165,7 +168,7 @@ export class BeeswarmChart {
         .style('background', 'rgba(0, 0, 0, 0.9)')
         .style('color', '#fff')
         .style('border-radius', '4px')
-        .style('font-size', '12px')
+        .style('font-size', '16px')
         .style('pointer-events', 'none')
         .style('display', 'none')
         .style('z-index', '1000')
@@ -212,6 +215,7 @@ export class BeeswarmChart {
           id: d.id,
           title_en: d.title || 'Unknown',
           title_jp: d.title_jp || '',
+          genre: d.genre || 'Unknown',
           score: parseFloat(d[scoreKey]),
           votes: parseInt(d[votesKey]) || 0,
           mal_score: d.mal_score ? parseFloat(d.mal_score) : null,
@@ -225,8 +229,8 @@ export class BeeswarmChart {
       // Beeswarm simulation
       const simulation = d3.forceSimulation(platformData)
         .force('x', d3.forceX(d => this.xScales[platform](d.score)).strength(0.95))
-        .force('y', d3.forceY(this.yScale(platform) + this.yScale.bandwidth() / 2).strength(0.1))
-        .force('collide', d3.forceCollide(d => this.rScale(d.votes) + 1))
+        .force('y', d3.forceY(this.yScale(platform) + this.yScale.bandwidth() / 2).strength(0.5))
+        .force('collide', d3.forceCollide(d => this.rScale(d.votes) + 2))
         .stop();
 
       // Run simulation
@@ -266,14 +270,14 @@ export class BeeswarmChart {
         .attr('transform', `translate(0, ${this.yScale(platform) + this.yScale.bandwidth() + 20})`)
         .call(d3.axisBottom(this.xScales[platform]))
         .selectAll('text')
-        .attr('font-size', 11);
+        .attr('font-size', 22);
 
       // X-axis label
       platformGroup.append('text')
         .attr('x', plotWidth / 2)
         .attr('y', this.yScale(platform) + this.yScale.bandwidth() + 50)
         .attr('text-anchor', 'middle')
-        .attr('font-size', 12)
+        .attr('font-size', 24)
         .style('font-weight', 'bold')
         .text('Rating');
 
@@ -283,7 +287,7 @@ export class BeeswarmChart {
         .attr('x', plotWidth / 2)
         .attr('y', -15)
         .attr('text-anchor', 'middle')
-        .attr('font-size', 14)
+        .attr('font-size', 28)
         .style('font-weight', 'bold')
         .style('fill', this.platformColors[platform])
         .text(this.platformLabels[platform]);
@@ -294,7 +298,7 @@ export class BeeswarmChart {
       .attr('x', -this.innerHeight / 2)
       .attr('y', -80)
       .attr('text-anchor', 'middle')
-      .attr('font-size', 12)
+      .attr('font-size', 24)
       .style('font-weight', 'bold')
       .attr('transform', 'rotate(-90)')
       .text('Platforms');
@@ -307,15 +311,15 @@ export class BeeswarmChart {
    * Render legend for bubble sizes
    */
   renderLegend(dataToRender = this.dataset) {
-    const legendX = this.innerWidth + 20;
-    const legendY = -20;
+    const legendX = this.innerWidth - 120;
+    const legendY = -50;
 
     const legend = this.g.append('g')
       .attr('class', 'legend')
       .attr('transform', `translate(${legendX}, ${legendY})`);
 
     legend.append('text')
-      .attr('font-size', 11)
+      .attr('font-size', 22)
       .style('font-weight', 'bold')
       .text('Vote Count');
 
@@ -344,7 +348,7 @@ export class BeeswarmChart {
       .attr('class', 'legend-label')
       .attr('x', 45)
       .attr('y', (d, i) => 25 + i * 35)
-      .attr('font-size', 10)
+      .attr('font-size', 20)
       .style('dominant-baseline', 'middle')
       .text(d => d.label);
   }
@@ -383,17 +387,66 @@ export class BeeswarmChart {
       <strong>${data.title_en}</strong>
       ${data.title_jp ? `<br/><em>${data.title_jp}</em>` : ''}
       <br/>
+      <strong>Genre:</strong> ${data.genre}
+      <br/>
       <strong>Ratings:</strong>
       <br/>MAL: ${data.mal_score ? data.mal_score.toFixed(2) : 'N/A'} (${data.mal_votes ? data.mal_votes.toLocaleString() : 0} votes)
       <br/>IMDb: ${data.imdb_score ? data.imdb_score.toFixed(2) : 'N/A'} (${data.imdb_votes ? data.imdb_votes.toLocaleString() : 0} votes)
       <br/>Bangumi: ${data.bgm_score ? data.bgm_score.toFixed(2) : 'N/A'} (${data.bgm_votes ? data.bgm_votes.toLocaleString() : 0} votes)
     `;
 
+    const containerRect = this.container.getBoundingClientRect();
     this.tooltip
       .style('display', 'block')
-      .html(tooltipText)
-      .style('left', (event.pageX + 10) + 'px')
-      .style('top', (event.pageY + 10) + 'px');
+      .html(tooltipText);
+    
+    // Calculate position with boundary detection
+    setTimeout(() => {
+      const tooltipNode = this.tooltip.node();
+      const tooltipRect = tooltipNode.getBoundingClientRect();
+      const tooltipWidth = tooltipRect.width;
+      const tooltipHeight = tooltipRect.height;
+      
+      // Determine position based on mouse location
+      const mouseX = event.clientX - containerRect.left;
+      const chartCenterX = containerRect.width / 2;
+      
+      let left, top;
+      
+      // If mouse is on the left side, show tooltip to the right
+      if (mouseX < chartCenterX) {
+        left = event.clientX - containerRect.left + 30;
+      } else {
+        // If mouse is on the right side, show tooltip to the left
+        left = event.clientX - containerRect.left - tooltipWidth - 30;
+      }
+      
+      // Position vertically
+      top = event.clientY - containerRect.top + 20;
+      
+      // Check right boundary
+      if (left + tooltipWidth > containerRect.width) {
+        left = event.clientX - containerRect.left - tooltipWidth - 20;
+      }
+      
+      // Check left boundary
+      if (left < 0) {
+        left = event.clientX - containerRect.left + 20;
+      }
+      
+      // Check bottom boundary
+      if (top + tooltipHeight > containerRect.height) {
+        top = event.clientY - containerRect.top - tooltipHeight - 20;
+      }
+      
+      // Ensure minimum values
+      left = Math.max(0, left);
+      top = Math.max(0, top);
+      
+      this.tooltip
+        .style('left', left + 'px')
+        .style('top', top + 'px');
+    }, 0);
   }
 
   /**
@@ -401,9 +454,51 @@ export class BeeswarmChart {
    */
   updateTooltipPosition(event) {
     if (this.tooltip) {
+      const containerRect = this.container.getBoundingClientRect();
+      const tooltipNode = this.tooltip.node();
+      const tooltipRect = tooltipNode.getBoundingClientRect();
+      const tooltipWidth = tooltipRect.width;
+      const tooltipHeight = tooltipRect.height;
+      
+      // Determine position based on mouse location
+      const mouseX = event.clientX - containerRect.left;
+      const chartCenterX = containerRect.width / 2;
+      
+      let left, top;
+      
+      // If mouse is on the left side, show tooltip to the right
+      if (mouseX < chartCenterX) {
+        left = event.clientX - containerRect.left + 30;
+      } else {
+        // If mouse is on the right side, show tooltip to the left
+        left = event.clientX - containerRect.left - tooltipWidth - 30;
+      }
+      
+      // Position vertically
+      top = event.clientY - containerRect.top + 20;
+      
+      // Check right boundary
+      if (left + tooltipWidth > containerRect.width) {
+        left = event.clientX - containerRect.left - tooltipWidth - 20;
+      }
+      
+      // Check left boundary
+      if (left < 0) {
+        left = event.clientX - containerRect.left + 20;
+      }
+      
+      // Check bottom boundary
+      if (top + tooltipHeight > containerRect.height) {
+        top = event.clientY - containerRect.top - tooltipHeight - 20;
+      }
+      
+      // Ensure minimum values
+      left = Math.max(0, left);
+      top = Math.max(0, top);
+      
       this.tooltip
-        .style('left', (event.pageX + 10) + 'px')
-        .style('top', (event.pageY + 10) + 'px');
+        .style('left', left + 'px')
+        .style('top', top + 'px');
     }
   }
 
@@ -463,11 +558,35 @@ export class BeeswarmChart {
   resize() {
     if (!this.svg || !this.container) return;
 
-    const width = this.container.clientWidth || this.config.width;
-    const height = this.container.clientHeight || this.config.height;
+    // 基于实际容器尺寸进行响应式计算（兼容分屏场景）
+    const newConfig = getContainerResponsiveChartConfig(this.container?.clientWidth, this.container?.clientHeight);
 
+    // 更新内部配置
+    this.config = newConfig;
+    
+    const width = newConfig.width;
+    const height = newConfig.height;
+    const margin = newConfig.margin;
+
+    // 更新 SVG 的 viewBox 和尺寸
     this.svg
-      .attr('viewBox', `0 0 ${width} ${height}`);
+      .attr('viewBox', `0 0 ${width} ${height}`)
+      .attr('width', '100%')
+      .attr('height', '100%');
+
+    // 重新计算内部宽度和高度
+    this.innerWidth = width - margin.left - margin.right;
+    this.innerHeight = height - margin.top - margin.bottom;
+
+    // 更新 g 元素的位置
+    this.g.attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+    // 重新设置 scales
+    this.setupScales();
+
+    // 重新渲染图表内容（使用相同的数据）
+    const filteredData = this.getFilteredDataset(this.sharedState?.selectedGenre);
+    this.renderBeeswarms(filteredData);
   }
 
   /**

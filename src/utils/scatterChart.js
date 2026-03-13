@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import { getContainerResponsiveChartConfig, globalConfig } from '../config/globalConfig';
 
 /**
  * Scatter Chart - Rating Stability and Popularity Analysis
@@ -26,6 +27,7 @@ export class ScatterChart {
     this.dataset = null;
     this.rawData = null;
     this.sharedState = null;
+    this.stabilityFilter = null; // null = all, 'stable', 'moderate', 'unstable'
     
     this.xScale = null;
     this.yScale = null;
@@ -91,6 +93,8 @@ export class ScatterChart {
         return anime.avg_score_across_platforms && anime.vote_total > 0;
       });
 
+    this.config = getContainerResponsiveChartConfig(container?.clientWidth, container?.clientHeight);
+
     const width = this.config.width;
     const height = this.config.height;
     const margin = this.config.margin;
@@ -140,7 +144,7 @@ export class ScatterChart {
 
     // Y scale: average rating
     this.yScale = d3.scaleLinear()
-      .domain([4, 10]) // Most anime are between 4-10 range
+      .domain([7, 10]) // Start from 7, most anime are between 7-10 range
       .range([this.innerHeight, 0])
       .nice();
 
@@ -153,13 +157,13 @@ export class ScatterChart {
     
     this.sizeScale = d3.scaleSqrt()
       .domain([0, maxVariance])
-      .range([15, 3])  // Inverted: low variance = large bubble
+      .range([15, 6])  // Inverted: low variance = large bubble, high variance = smaller bubble
       .clamp(true);
 
     // Color scale: variance (red = unstable, green = stable)
     this.colorScale = d3.scaleLinear()
       .domain([0, maxVariance / 2, maxVariance])
-      .range(['#22c55e', '#fbbf24', '#ef4444'])  // green -> yellow -> red
+      .range([globalConfig.cyberpunkPalette.success_soft, globalConfig.cyberpunkPalette.warning_soft, globalConfig.cyberpunkPalette.primary_soft])
       .clamp(true);
   }
 
@@ -177,7 +181,7 @@ export class ScatterChart {
         .style('background', 'rgba(0, 0, 0, 0.9)')
         .style('color', '#fff')
         .style('border-radius', '4px')
-        .style('font-size', '12px')
+        .style('font-size', '24px')
         .style('pointer-events', 'none')
         .style('display', 'none')
         .style('z-index', '1000')
@@ -250,7 +254,7 @@ export class ScatterChart {
           return d;
         }))
       .selectAll('text')
-      .attr('font-size', 11);
+      .attr('font-size', 22);
 
     // X-axis label
     this.g.append('text')
@@ -258,7 +262,7 @@ export class ScatterChart {
       .attr('x', this.innerWidth / 2)
       .attr('y', this.innerHeight + 60)
       .attr('text-anchor', 'middle')
-      .attr('font-size', 13)
+      .attr('font-size', 26)
       .style('font-weight', 'bold')
       .text('Total Vote Count (Popularity)');
 
@@ -267,7 +271,7 @@ export class ScatterChart {
       .attr('class', 'axis')
       .call(d3.axisLeft(this.yScale).ticks(5))
       .selectAll('text')
-      .attr('font-size', 11);
+      .attr('font-size', 22);
 
     // Y-axis label
     this.g.append('text')
@@ -275,7 +279,7 @@ export class ScatterChart {
       .attr('x', -this.innerHeight / 2)
       .attr('y', -100)
       .attr('text-anchor', 'middle')
-      .attr('font-size', 13)
+      .attr('font-size', 26)
       .style('font-weight', 'bold')
       .attr('transform', 'rotate(-90)')
       .text('Average Rating');
@@ -297,23 +301,43 @@ export class ScatterChart {
 
     // Title
     legend.append('text')
-      .attr('font-size', 11)
+      .attr('font-size', 22)
       .style('font-weight', 'bold')
       .text('Rating Stability');
 
+    // Bubble size explanation
+    legend.append('text')
+      .attr('font-size', 18)
+      .attr('y', 18)
+      .style('fill', '#666')
+      .text('Bubble Size:');
+
+    legend.append('text')
+      .attr('font-size', 16)
+      .attr('y', 35)
+      .style('fill', '#999')
+      .text('● Larger = More Stable');
+
+    legend.append('text')
+      .attr('font-size', 16)
+      .attr('y', 52)
+      .style('fill', '#999')
+      .text('● Smaller = Less Stable');
+
     // Color legend
     legend.append('text')
-      .attr('font-size', 10)
-      .attr('y', 18)
-      .text('Variance:');
+      .attr('font-size', 18)
+      .attr('y', 75)
+      .style('fill', '#666')
+      .text('Color (Variance):');
 
-    const colors = ['#22c55e', '#fbbf24', '#ef4444'];
+    const colors = [globalConfig.cyberpunkPalette.success_soft, globalConfig.cyberpunkPalette.warning_soft, globalConfig.cyberpunkPalette.primary_soft];
     const labels = ['Stable', 'Moderate', 'Unstable'];
 
     colors.forEach((color, i) => {
       legend.append('rect')
         .attr('x', 0)
-        .attr('y', 25 + i * 18)
+        .attr('y', 80 + i * 18)
         .attr('width', 12)
         .attr('height', 12)
         .attr('fill', color)
@@ -321,8 +345,8 @@ export class ScatterChart {
 
       legend.append('text')
         .attr('x', 18)
-        .attr('y', 30 + i * 18)
-        .attr('font-size', 10)
+        .attr('y', 85 + i * 18)
+        .attr('font-size', 16)
         .attr('dominant-baseline', 'middle')
         .text(labels[i]);
     });
@@ -373,16 +397,44 @@ export class ScatterChart {
       <br/>
       <strong>Rating Variance:</strong> ${variance.toFixed(3)}
       <br/>
-      <span style="font-size: 11px; opacity: 0.8;">
-        ${variance < 0.5 ? '✓ Stable' : variance < 1.5 ? '⚠ Moderate' : '✕ Unstable'}
+      <span style="font-size: 22px; opacity: 0.8;">
+        ${variance < 0.3 ? '✓ Stable' : variance < 1.0 ? '⚠ Moderate' : '✕ Unstable'}
       </span>
     `;
 
+    const containerRect = this.container.getBoundingClientRect();
     this.tooltip
       .style('display', 'block')
-      .html(tooltipText)
-      .style('left', (event.pageX + 10) + 'px')
-      .style('top', (event.pageY + 10) + 'px');
+      .html(tooltipText);
+    
+    // Calculate position with boundary detection
+    setTimeout(() => {
+      const tooltipNode = this.tooltip.node();
+      const tooltipRect = tooltipNode.getBoundingClientRect();
+      const tooltipWidth = tooltipRect.width;
+      const tooltipHeight = tooltipRect.height;
+      
+      let left = event.clientX - containerRect.left + 50;
+      let top = event.clientY - containerRect.top + 85;
+      
+      // Check right boundary
+      if (left + tooltipWidth > containerRect.width) {
+        left = event.clientX - containerRect.left - tooltipWidth - 20;
+      }
+      
+      // Check bottom boundary
+      if (top + tooltipHeight > containerRect.height) {
+        top = event.clientY - containerRect.top - tooltipHeight - 20;
+      }
+      
+      // Ensure minimum values
+      left = Math.max(0, left);
+      top = Math.max(0, top);
+      
+      this.tooltip
+        .style('left', left + 'px')
+        .style('top', top + 'px');
+    }, 0);
   }
 
   /**
@@ -390,9 +442,32 @@ export class ScatterChart {
    */
   updateTooltipPosition(event) {
     if (this.tooltip) {
+      const containerRect = this.container.getBoundingClientRect();
+      const tooltipNode = this.tooltip.node();
+      const tooltipRect = tooltipNode.getBoundingClientRect();
+      const tooltipWidth = tooltipRect.width;
+      const tooltipHeight = tooltipRect.height;
+      
+      let left = event.clientX - containerRect.left + 50;
+      let top = event.clientY - containerRect.top + 85;
+      
+      // Check right boundary
+      if (left + tooltipWidth > containerRect.width) {
+        left = event.clientX - containerRect.left - tooltipWidth - 20;
+      }
+      
+      // Check bottom boundary
+      if (top + tooltipHeight > containerRect.height) {
+        top = event.clientY - containerRect.top - tooltipHeight - 20;
+      }
+      
+      // Ensure minimum values
+      left = Math.max(0, left);
+      top = Math.max(0, top);
+      
       this.tooltip
-        .style('left', (event.pageX + 10) + 'px')
-        .style('top', (event.pageY + 10) + 'px');
+        .style('left', left + 'px')
+        .style('top', top + 'px');
     }
   }
 
@@ -406,18 +481,49 @@ export class ScatterChart {
   }
 
   /**
+   * Get stability category based on variance
+   */
+  getStabilityCategory(variance) {
+    if (variance < 0.3) return 'stable';
+    if (variance < 1.0) return 'moderate';
+    return 'unstable';
+  }
+
+  /**
+   * Set stability filter and re-render
+   */
+  setStabilityFilter(category) {
+    this.stabilityFilter = category; // null, 'stable', 'moderate', or 'unstable'
+    if (this.g && this.dataset) {
+      const filteredData = this.getFilteredDataset(this.sharedState?.selectedGenre);
+      this.renderScatter(filteredData);
+    }
+  }
+
+  /**
    * Get filtered dataset based on genre
    */
   getFilteredDataset(selectedGenre) {
-    if (!selectedGenre) {
-      return this.dataset;
+    let result = this.dataset;
+
+    // Filter by genre if specified
+    if (selectedGenre) {
+      result = result.filter(anime => {
+        if (!anime.genre) return false;
+        const genres = anime.genre.split('|').map(g => g.trim());
+        return genres.includes(selectedGenre);
+      });
     }
 
-    return this.dataset.filter(anime => {
-      if (!anime.genre) return false;
-      const genres = anime.genre.split('|').map(g => g.trim());
-      return genres.includes(selectedGenre);
-    });
+    // Filter by stability if specified
+    if (this.stabilityFilter) {
+      result = result.filter(anime => {
+        const variance = parseFloat(anime.score_variance) || 0;
+        return this.getStabilityCategory(variance) === this.stabilityFilter;
+      });
+    }
+
+    return result;
   }
 
   /**
@@ -452,11 +558,35 @@ export class ScatterChart {
   resize() {
     if (!this.svg || !this.container) return;
 
-    const width = this.container.clientWidth || this.config.width;
-    const height = this.container.clientHeight || this.config.height;
+    // 基于实际容器尺寸进行响应式计算（兼容分屏场景）
+    const newConfig = getContainerResponsiveChartConfig(this.container?.clientWidth, this.container?.clientHeight);
 
+    // 更新内部配置
+    this.config = newConfig;
+    
+    const width = newConfig.width;
+    const height = newConfig.height;
+    const margin = newConfig.margin;
+
+    // 更新 SVG 的 viewBox 和尺寸
     this.svg
-      .attr('viewBox', `0 0 ${width} ${height}`);
+      .attr('viewBox', `0 0 ${width} ${height}`)
+      .attr('width', '100%')
+      .attr('height', '100%');
+
+    // 重新计算内部宽度和高度
+    this.innerWidth = width - margin.left - margin.right;
+    this.innerHeight = height - margin.top - margin.bottom;
+
+    // 更新 g 元素的位置
+    this.g.attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+    // 重新设置 scales
+    this.setupScales();
+
+    // 重新渲染图表内容（使用相同的数据）
+    const filteredData = this.getFilteredDataset(this.sharedState?.selectedGenre);
+    this.renderScatter(filteredData);
   }
 
   /**

@@ -71,28 +71,26 @@ const steps = [
   {
     id: 'step-1',
     title: '🎬 Are rating patterns consistent across genres and platforms?',
-    body: `(*Hover over the cells, you can see more details.) The heatmap is your first clue. We use percentiles instead of raw ratings to normalize across platforms that use different rating scales. We can see that <span class="interactive-text" data-highlight-type="genre" data-highlight-value="Thriller,Avant Garde,Boys Love,Crime,Family,Sci-Fi, History, Sport">different communities do have different genre preferences</span>. The answer to our central question is right here: no, rating patterns are NOT consistent.`,
+    body: `(*Hover over the cells, you can see more details.) \n The heatmap is your first clue. We use percentiles instead of raw ratings to normalize across platforms that use different rating scales. \n We can see that <span class="interactive-text" data-highlight-type="genre" data-highlight-value="Thriller,Avant Garde,Boys Love,Crime,Family,Sci-Fi, History, Sport">different communities do have different genre preferences</span>. 
+    \n The takeaway: The answer to our central question is right here: no, rating patterns are NOT consistent.`,
     bodyHtml: true
   },
   {
     id: 'step-2',
     title: '📊 How do individual anime titles distribute within each platform\'s rating ecosystem?',
-    body: `Now let's zoom in. See the beeswarm plot? Each dot is a real anime. Red, Blue, Green
-    —each color represents a platform. The vertical position? That's the percentile rank within that platform's ecosystem.
-
-Watch the swarms. Are they in the same place on all three platforms? Hover over a title you recognize. See how it bounces between ranks depending on the community? Some anime cluster at the top on one platform but sink toward the middle on another. The spread is different, the density is different, the location is different.
-
-The revelation: <span class="interactive-text" data-highlight-type="rank-distribution" data-highlight-value="different">individual titles don't occupy the same "rank space" across communities</span>. A hit on MyAnimeList might be middling on IMDb. Your favorite mid-tier anime? It might be treasured somewhere else. Communities literally see different hierarchies.`,
+    body: ` Now let's zoom in. Each dot is a real anime. Red, Blue, Green —each color represents a platform. Dot size indicates vote count. You may notice that the MyAnimeList swarm contains many larger circles, while Bangumi and IMDb tend to have smaller ones. \n Hover over a title you recognize. See how it bounces between ranks depending on the community? 
+    \n Key insight1: <span class="interactive-text" data-highlight-type="anime" data-highlight-value="Shingeki no Kyojin Season 3 Part 2">individual titles don't occupy the same "rank space" across communities</span>. A hit on MyAnimeList might be middling on IMDb.  
+    \n Key insight2: <span class="interactive-text" data-highlight-type="anime" data-highlight-value="Kimetsu no Yaiba">popularity doesn't guarantee agreement</span>. Some of the most popular anime are rated very differently across platforms, showing that even widely watched titles can be divisive. 
+    \n Key insight3: <span class="interactive-text" data-highlight-type="anime" data-highlight-value="Gin no Saji 2nd Season">Community size shapes ratings, but audience preference shapes participation.</span> While MAL often shows the highest participation overall, there are still individual titles where IMDb collects even more votes than MAL. Some anime thrive within specialized fandom communities, while others spread more widely across general media audiences.
+    \n The takeaway: the anime world isn't a single hierarchy. `, 
     bodyHtml: true
   },
   {
     id: 'step-3',
     title: '🔍 Does popularity influence rating stability across communities?',
-    body: `This scatter plot asks a fascinating question: if everyone knows about an anime, do communities agree on it? The x-axis is popularity—how many people voted. The y-axis is stability—how much the communities disagree on its ranking.
-
-Notice the colors: <span class="interactive-text" data-highlight-type="stability" data-highlight-value="high">green dots cluster toward the bottom (low disagreement)</span>, while <span class="interactive-text" data-highlight-type="stability" data-highlight-value="low">red dots scatter higher (high disagreement)</span>. Here's the surprise—look at the right side where the most popular anime live. You'd think massive popularity means consensus, right? Wrong. Some of the most popular anime are painted red, showing massive rank variance across platforms. People watched it everywhere, but loved it... differently.
-
-The insight: popularity doesn't guarantee agreement. Communities can be equally informed but reach opposite conclusions. A viral hit might be rated #1 here and #50 there. This proves that platform preference isn't about knowledge—it's about taste.`,
+    body: `The x-axis is popularity, the y-axis is score, and the color represents stability. Key finding: almost all anime cluster are green (low variance), **regardless of popularity**. 
+    \nClick the buttons above to filter by stability: "Stable" (green), "Moderate" (yellow), "Unstable" (red). Notice the unstable zone is nearly empty—just one outlier. 
+    \n The takeaway: This reveals the core pattern: communities reach consensus on *how good* a title is, but disagree on *which* genres matter. The 0-10 scale constrains variance, but the deeper truth is that quality judgment is shared—only preference diverges.`,
     bodyHtml: true
   },
   {
@@ -102,7 +100,7 @@ The insight: popularity doesn't guarantee agreement. Communities can be equally 
 
 Look at a <span class="interactive-text" data-highlight-type="radar-shape" data-highlight-value="pointy">jagged, pointy radar with spikes going in different directions</span>? That's disagreement written in geometry. One platform's spike shoots to the top while another stays short. That's a genre where communities truly diverge. Now look at a <span class="interactive-text" data-highlight-type="radar-shape" data-highlight-value="round">smooth, round radar</span>—that's consensus. All three platforms agree this genre is great (or mediocre).
 
-Pick different genres using the filter below. Which ones transform into sharp stars? Those are your flashpoint genres—Romance, Action, Psychological—where communities take polar opposite positions. Try it. The shape reveals truth: some genres are bridges that communities agree on, while others are battlegrounds where taste differs fundamentally.`,
+Pick different genres using the filter above. Which ones transform into sharp stars? Those are your flashpoint genres—Romance, Action, Psychological—where communities take polar opposite positions. Try it. The shape reveals truth: some genres are bridges that communities agree on, while others are battlegrounds where taste differs fundamentally.`,
     bodyHtml: true
   },
   {
@@ -168,11 +166,19 @@ const handleHighlightClick = (event) => {
       highlightState.value.type = null;
       highlightState.value.value = null;
       highlightState.value.intensity = 0;
+      // 清除shared state中的anime高亮
+      if (highlightType === 'anime') {
+        globalState.highlightAnimeTitle = null;
+      }
     } else {
       // 设置新的高亮
       highlightState.value.type = highlightType;
       highlightState.value.value = highlightValue;
       highlightState.value.intensity = 1;
+      // 如果是anime类型，传到globalState
+      if (highlightType === 'anime') {
+        globalState.highlightAnimeTitle = highlightValue;
+      }
     }
   }
 };

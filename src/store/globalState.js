@@ -4,6 +4,7 @@ export function createGlobalState() {
   return reactive({
     rawData: [],
     isDataLoaded: false,
-    activeStep: null
+    activeStep: null,
+    highlightAnimeTitle: null
   });
 }

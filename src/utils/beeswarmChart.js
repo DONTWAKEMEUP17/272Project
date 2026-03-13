@@ -376,9 +376,15 @@ export class BeeswarmChart {
    * Highlight specific anime across all platforms
    */
   highlightAnime(animeId) {
+    let highlightedData = null;
+    
     this.g.selectAll('circle')
       .attr('opacity', d => {
-        return d.id === animeId ? 1 : 0.2;
+        if (d.id === animeId) {
+          highlightedData = d;
+          return 1;
+        }
+        return 0.2;
       })
       .attr('stroke-width', d => {
         return d.id === animeId ? 2 : 1;
@@ -386,6 +392,27 @@ export class BeeswarmChart {
       .attr('stroke', d => {
         return d.id === animeId ? '#333' : 'white';
       });
+    
+    // Show tooltip for highlighted anime
+    if (highlightedData) {
+      const tooltipText = `
+        <strong>${highlightedData.title_en}</strong>
+        ${highlightedData.title_jp ? `<br/><em>${highlightedData.title_jp}</em>` : ''}
+        <br/>
+        <strong>Genre:</strong> ${highlightedData.genre}
+        <br/>
+        <strong>Ratings:</strong>
+        <br/>MAL: ${highlightedData.mal_score ? highlightedData.mal_score.toFixed(2) : 'N/A'} (${highlightedData.mal_votes ? highlightedData.mal_votes.toLocaleString() : 0} votes)
+        <br/>IMDb: ${highlightedData.imdb_score ? highlightedData.imdb_score.toFixed(2) : 'N/A'} (${highlightedData.imdb_votes ? highlightedData.imdb_votes.toLocaleString() : 0} votes)
+        <br/>Bangumi: ${highlightedData.bgm_score ? highlightedData.bgm_score.toFixed(2) : 'N/A'} (${highlightedData.bgm_votes ? highlightedData.bgm_votes.toLocaleString() : 0} votes)
+      `;
+
+      this.tooltip
+        .style('display', 'block')
+        .html(tooltipText)
+        .style('left', '20px')
+        .style('top', '20px');
+    }
   }
 
   /**
@@ -396,6 +423,11 @@ export class BeeswarmChart {
       .attr('opacity', 0.7)
       .attr('stroke', 'white')
       .attr('stroke-width', 1);
+    
+    // Hide tooltip
+    if (this.tooltip) {
+      this.tooltip.style('display', 'none');
+    }
   }
 
   /**
@@ -541,6 +573,7 @@ export class BeeswarmChart {
     this.sharedState = sharedState || {};
     const selectedGenre = stepState?.selectedGenre || sharedState?.selectedGenre;
     const highlightTitle = sharedState?.highlightTitle;
+    const highlightAnimeTitle = sharedState?.highlightAnimeTitle;
 
     // Update dataset filtering based on selected genre
     const filteredDataset = this.getFilteredDataset(selectedGenre);
@@ -548,8 +581,14 @@ export class BeeswarmChart {
     // Re-render with filtered data
     this.renderBeeswarms(filteredDataset);
 
-    // Update highlighting based on highlightTitle
-    if (highlightTitle) {
+    // Update highlighting based on highlightTitle or highlightAnimeTitle
+    if (highlightAnimeTitle) {
+      // Find anime by title and highlight it
+      const anime = this.dataset.find(a => a.title === highlightAnimeTitle);
+      if (anime) {
+        this.highlightAnime(anime.id);
+      }
+    } else if (highlightTitle) {
       this.highlightAnime(highlightTitle);
     } else {
       this.unhighlightAnime();

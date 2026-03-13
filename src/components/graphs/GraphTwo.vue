@@ -6,7 +6,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watch, onBeforeUnmount, defineExpose } from 'vue';
+import { onMounted, ref, watch, onBeforeUnmount, defineExpose, inject } from 'vue';
 import { useSharedData } from '../../composables/useSharedData';
 import { useResponsiveConfig } from '../../composables/useResponsiveConfig';
 import { BeeswarmChart } from '../../utils/beeswarmChart';
@@ -29,6 +29,7 @@ const props = defineProps({
 const chartRef = ref(null);
 const { loadData } = useSharedData();
 const { chartConfig } = useResponsiveConfig();
+const globalState = inject('globalState', {});
 let beeswarmInstance = null;
 
 // Initialize beeswarm on mount
@@ -60,6 +61,18 @@ watch(() => props.sharedState, (newState) => {
     beeswarmInstance.update(props.stepState, newState || {});
   }
 }, { deep: true });
+
+// Watch for globalState highlight changes
+watch(() => globalState.highlightAnimeTitle, (newTitle) => {
+  if (beeswarmInstance) {
+    // Merge globalState highlight with existing sharedState
+    const sharedStateWithHighlight = {
+      ...(props.sharedState || {}),
+      highlightAnimeTitle: newTitle
+    };
+    beeswarmInstance.update(props.stepState || {}, sharedStateWithHighlight);
+  }
+}, { immediate: true });
 
 // Cleanup on unmount
 onBeforeUnmount(() => {

@@ -211,13 +211,15 @@ export class RadarChart {
     radarSize = Math.min(100, Math.floor((this.innerWidth - padding * (estimatedCols - 1)) / estimatedCols));
     
     const cols = Math.floor(this.innerWidth / (radarSize + padding));
+    // 增加行间距以容纳标题和计数标签
+    const rowHeight = radarSize + padding + 25;
     const rows = Math.ceil(dataToRender.length / cols);
 
     dataToRender.forEach((genreData, index) => {
       const col = index % cols;
       const row = Math.floor(index / cols);
       const x = col * (radarSize + padding) + radarSize / 2;
-      const y = row * (radarSize + padding) + radarSize / 2;
+      const y = row * rowHeight + radarSize / 2;
 
       // Create group for each radar
       const radarGroup = this.g.append('g')
@@ -339,7 +341,7 @@ export class RadarChart {
     group.append('text')
       .attr('class', 'radar-genre-label')
       .attr('x', 0)
-      .attr('y', radius + 30)
+      .attr('y', radius + 20)
       .attr('text-anchor', 'middle')
       .attr('font-size', genreLabelSize)
       .style('font-weight', 'bold')
@@ -350,7 +352,7 @@ export class RadarChart {
     group.append('text')
       .attr('class', 'radar-count-label')
       .attr('x', 0)
-      .attr('y', radius + 42)
+      .attr('y', radius + 32)
       .attr('text-anchor', 'middle')
       .attr('font-size', countLabelSize)
       .style('fill', globalConfig.cyberpunkPalette.text.secondary)

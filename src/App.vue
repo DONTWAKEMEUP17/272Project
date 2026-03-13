@@ -38,6 +38,11 @@
           <p v-if="step.bodyHtml" v-html="step.body" @click="handleHighlightClick" class="story-content"></p>
           <p v-else class="story-content">{{ step.body }}</p>
         </article>
+        
+        <article class="takeaway-section">
+          <h2>{{ takeaway.title }}</h2>
+          <p class="story-content" v-html="takeaway.body" @click="handleHighlightClick"></p>
+        </article>
       </section>
     </section>
   </main>
@@ -88,39 +93,122 @@ const steps = [
   {
     id: 'step-3',
     title: '🔍 Does popularity influence rating stability across communities?',
-    body: `The x-axis is popularity, the y-axis is score, and the color represents stability. Key finding: almost all anime cluster are green (low variance), **regardless of popularity**. 
-    \nClick the buttons above to filter by stability: "Stable" (green), "Moderate" (yellow), "Unstable" (red). Notice the unstable zone is nearly empty—just one outlier. 
-    \n The takeaway: This reveals the core pattern: communities reach consensus on *how good* a title is, but disagree on *which* genres matter. The 0-10 scale constrains variance, but the deeper truth is that quality judgment is shared—only preference diverges.`,
-    bodyHtml: true
-  },
-  {
-    id: 'step-4',
-    title: '⭐ Which genres show systematic platform preference?',
-    body: `The radar chart is your magnifying glass. Pick a genre and watch the shape transform across platforms. Three axes—one for each community—extending outward from the center.
+    body: `Each point represents one anime title.
 
-Look at a <span class="interactive-text" data-highlight-type="radar-shape" data-highlight-value="pointy">jagged, pointy radar with spikes going in different directions</span>? That's disagreement written in geometry. One platform's spike shoots to the top while another stays short. That's a genre where communities truly diverge. Now look at a <span class="interactive-text" data-highlight-type="radar-shape" data-highlight-value="round">smooth, round radar</span>—that's consensus. All three platforms agree this genre is great (or mediocre).
+The x-axis shows popularity.
+The y-axis shows its average score.
 
-Pick different genres using the filter above. Which ones transform into sharp stars? Those are your flashpoint genres—Romance, Action, Psychological—where communities take polar opposite positions. Try it. The shape reveals truth: some genres are bridges that communities agree on, while others are battlegrounds where taste differs fundamentally.`,
+Color indicates rating stability across platforms.
+
+Green — stable
+
+Yellow — moderate
+
+Red — divergent
+
+Try filtering the points using the buttons above.
+
+Most of the chart stays green.
+
+Regardless of popularity, the vast majority of anime receive very similar scores across communities.
+
+The unstable zone is almost empty — only one clear outlier.
+
+So the pattern becomes clear.
+
+Communities largely agree on how good an anime is.
+
+But agreement on quality doesn't mean agreement on taste.
+
+Scores remain stable.
+Preferences diverge.
+
+Quality is shared.
+Taste is platform-specific.`,
     bodyHtml: true
   },
   {
     id: 'step-5',
     title: '🎯 How do these genre preferences translate into different ranking structures?',
-    body: `This is the final reveal. Watch the parallel coordinates. Three vertical lines—one per platform. Lines connecting them represent anime, colored by their stability. <span class="interactive-text" data-highlight-type="line-type" data-highlight-value="stable">Follow a green line as it drifts smoothly across platforms—those communities agree, the anime ranks consistently</span>. Now <span class="interactive-text" data-highlight-type="line-type" data-highlight-value="divergent">trace a red line that zigzags wildly, jumping from top to bottom as it moves right</span>—that anime is a totally different tier depending on who you ask.
+    body: `Earlier, we saw that most anime receive very similar scores across platforms. Communities largely agree on how good a title is.
 
-Here's the complete story: the genre preferences you discovered earlier—those warm and cool heatmap cells—they cascade down into individual title rankings. When MyAnimeList loves a genre, its anime float higher. When Bangumi favors something else, different titles rise. The lines crossing and diverging aren't random—they're the fingerprint of systematic genre bias.
+But rankings tell a different story.
 
-Step back and see it all together: from macro genre preferences down to micro individual rankings, every layer reveals the same truth. Communities don't just rate differently. They see the anime world through different lenses entirely.`,
+Look at the lines. Each one represents a single anime title, connected across MyAnimeList, IMDb, and Bangumi.
+
+Many lines cross.
+
+A title that ranks near the top on one platform may appear much lower on another.
+
+Why?
+
+Because rankings are relative. Even tiny score differences can shift a title up or down once thousands of other anime compete for position.
+
+So while communities agree on quality, they still disagree on priority.
+
+The score stays stable. The ranking moves.`,
+    bodyHtml: true
+  },
+  {
+    id: 'step-4',
+    title: '⭐ Which genres show systematic platform preference?',
+    body: `Use the filters to explore different genres.
+
+The radar charts are arranged by anime count.
+Genres at the top contain the most titles across platforms.
+
+Action, Comedy, and Drama dominate the catalog.
+Others — like Gourmet, History, or Sport — appear far less often.
+
+Each radar shows how a genre ranks across MyAnimeList, IMDb, and Bangumi.
+
+The farther a point extends from the center,
+the higher that genre ranks within the community.
+
+Now look at the shapes.
+
+Large genres tend to form balanced triangles.
+Their rankings stay relatively consistent across platforms.
+
+But niche genres behave differently.
+
+With only a handful of titles, their shapes stretch and twist.
+One platform may rank them highly, while another barely notices them.
+
+Big genres show shared consensus.
+Small genres reveal community taste.`,
     bodyHtml: true
   }
 ];
+
+// Takeaway summary
+const takeaway = {
+  title: '🎬 Key Takeaway',
+  body: `After examining ratings across heatmaps, individual titles, stability patterns, and genre preferences, one truth emerges:
+
+Different communities don't just have different opinions — they have different hierarchies.
+
+Not because they disagree on quality. Communities largely *agree* on how good a title is.
+
+But they disagree on priority.
+
+They disagree on which genres matter, which brings different titles into prominence.
+
+They disagree on the relative importance of thousands of anime competing for top positions.
+
+The anime world doesn't have one ranking. Every community builds its own.
+
+The score is shared. The hierarchy is not.
+
+Quality is universal. Taste is platform-specific.`
+};
 
 const graphComponents = [
   { key: 'graph-1', component: GraphOne },
   { key: 'graph-2', component: GraphTwo },
   { key: 'graph-3', component: GraphThree },
-  { key: 'graph-4', component: GraphFour },
-  { key: 'graph-5', component: GraphFive }
+  { key: 'graph-5', component: GraphFive },
+  { key: 'graph-4', component: GraphFour }
 ];
 
 const activeStep = ref(0);
